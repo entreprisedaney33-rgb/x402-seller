@@ -7,8 +7,9 @@ export const path = "/api/ai/extract";
 export const method = "POST";
 export const price = "$0.02";
 export const description =
-  "Extrait des informations structurees d'un texte, selon un schema JSON fourni, via Claude Haiku 4.5. " +
-  `Corps JSON: {text: string (max ${MAX_INPUT_CHARS} caracteres), schema: object (JSON Schema decrivant les champs a extraire)}.`;
+  "Extract JSON from text — pull structured fields (invoice data, contact info, product specs, any custom schema) " +
+  "out of unstructured text, via Claude Haiku 4.5. " +
+  `JSON body: {text: string (max ${MAX_INPUT_CHARS} chars), schema: object (JSON Schema describing the fields to extract)}.`;
 
 export const discovery = declareDiscoveryExtension({
   method: "POST",
@@ -27,8 +28,8 @@ export const discovery = declareDiscoveryExtension({
   },
   inputSchema: {
     properties: {
-      text: { type: "string", description: `Texte source (max ${MAX_INPUT_CHARS} caracteres).` },
-      schema: { type: "object", description: "JSON Schema decrivant les champs a extraire." },
+      text: { type: "string", description: `Source text (max ${MAX_INPUT_CHARS} chars).` },
+      schema: { type: "object", description: "JSON Schema describing the fields to extract." },
     },
     required: ["text", "schema"],
   },
@@ -42,15 +43,15 @@ export async function handler(req, res) {
   const schema = req.body?.schema;
 
   if (!text) {
-    res.status(400).json({ error: "Champ 'text' requis (chaine non vide)." });
+    res.status(400).json({ error: "Field 'text' is required (non-empty string)." });
     return;
   }
   if (text.length > MAX_INPUT_CHARS) {
-    res.status(400).json({ error: `Champ 'text' trop long (max ${MAX_INPUT_CHARS} caracteres, recu ${text.length}).` });
+    res.status(400).json({ error: `Field 'text' too long (max ${MAX_INPUT_CHARS} chars, got ${text.length}).` });
     return;
   }
   if (!schema || typeof schema !== "object" || Array.isArray(schema)) {
-    res.status(400).json({ error: "Champ 'schema' requis (objet JSON Schema decrivant les champs a extraire)." });
+    res.status(400).json({ error: "Field 'schema' is required (a JSON Schema object describing the fields to extract)." });
     return;
   }
 
@@ -66,7 +67,7 @@ export async function handler(req, res) {
 
     const data = extractJson(raw);
     if (data === null) {
-      res.status(502).json({ error: "Le modele a renvoye une reponse non-JSON, reessaie." });
+      res.status(502).json({ error: "The model returned a non-JSON response, try again." });
       return;
     }
 

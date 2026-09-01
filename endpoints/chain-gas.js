@@ -1,22 +1,22 @@
 // GET /api/chain/gas?chain=base|ethereum — endpoint payant (0,005 $).
 // Prix du gas courant via RPC public (viem), pas d'API tierce agregee.
 import { declareDiscoveryExtension } from "@x402/extensions/bazaar";
-import { getPublicClient, SUPPORTED_CHAINS } from "../lib/chains.js";
+import { getPublicClient, getGasPrice, SUPPORTED_CHAINS } from "../lib/chains.js";
 import { cached } from "../lib/cache.js";
-import { UpstreamError } from "../lib/http.js";
 
 export const path = "/api/chain/gas";
 export const method = "GET";
 export const price = "$0.005";
 export const description =
-  "Prix du gas courant sur une blockchaine EVM, lu en direct via RPC public (viem). " +
-  `Parametre: ?chain=<${SUPPORTED_CHAINS.join("|")}>.`;
+  "Current gas price on an EVM blockchain, read live via a public RPC endpoint (viem) — no API key, no aggregator. " +
+  `Also available as dedicated routes: GET /api/gas/base, GET /api/gas/ethereum. ` +
+  `Parameter: ?chain=<${SUPPORTED_CHAINS.join("|")}>.`;
 
 export const discovery = declareDiscoveryExtension({
   input: { chain: "base" },
   inputSchema: {
     properties: {
-      chain: { type: "string", enum: SUPPORTED_CHAINS, description: "Chaine EVM interrogee." },
+      chain: { type: "string", enum: SUPPORTED_CHAINS, description: "EVM chain to query." },
     },
     required: ["chain"],
   },
@@ -32,19 +32,12 @@ export const discovery = declareDiscoveryExtension({
 
 export async function handler(req, res) {
   const chainName = String(req.query.chain || "").toLowerCase();
-  const client = getPublicClient(chainName);
-  if (!client) {
-    res.status(400).json({ error: `Parametre 'chain' invalide. Valeurs acceptees: ${SUPPORTED_CHAINS.join(", ")}.` });
+  if (!getPublicClient(chainName)) {
+    res.status(400).json({ error: `Invalid 'chain' parameter. Accepted values: ${SUPPORTED_CHAINS.join(", ")}.` });
     return;
   }
 
-  const gasPriceWei = await cached(`chain-gas:${chainName}`, 60_000, async () => {
-    try {
-      return await client.getGasPrice();
-    } catch (err) {
-      throw new UpstreamError(`RPC ${chainName} injoignable : ${err.message}`, { status: 502 });
-    }
-  });
+  const gasPriceWei = await cached(`chain-gas:${chainName}`, 60_000, () => getGasPrice(chainName));
 
   res.json({
     chain: chainName,

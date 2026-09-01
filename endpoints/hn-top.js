@@ -9,14 +9,14 @@ export const path = "/api/hn/top";
 export const method = "GET";
 export const price = "$0.005";
 export const description =
-  "Classement courant des N meilleures histoires Hacker News (titre, url, score, auteur, nb de commentaires). " +
-  "Parametre optionnel: ?limit=<n> (1-50, defaut 20).";
+  "Current top N Hacker News stories (title, url, score, author, comment count) — tech/startup news ranking. " +
+  "Optional parameter: ?limit=<n> (1-50, default 20).";
 
 export const discovery = declareDiscoveryExtension({
   input: { limit: 20 },
   inputSchema: {
     properties: {
-      limit: { type: "integer", description: "Nombre d'histoires a renvoyer (1-50, defaut 20)." },
+      limit: { type: "integer", description: "Number of stories to return (1-50, default 20)." },
     },
     required: [],
   },
@@ -36,7 +36,7 @@ export async function handler(req, res) {
   let limit = Number.parseInt(req.query.limit, 10);
   if (!Number.isFinite(limit)) limit = 20;
   if (limit < 1 || limit > 50) {
-    res.status(400).json({ error: "Parametre 'limit' invalide (entier entre 1 et 50 attendu)." });
+    res.status(400).json({ error: "Invalid 'limit' parameter (integer between 1 and 50 expected)." });
     return;
   }
 

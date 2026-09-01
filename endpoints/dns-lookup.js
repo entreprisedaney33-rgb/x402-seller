@@ -9,14 +9,14 @@ export const path = "/api/dns/lookup";
 export const method = "GET";
 export const price = "$0.005";
 export const description =
-  "Enregistrements DNS d'un domaine : A, AAAA, MX, TXT, NS. Absence d'un type de champ = tableau vide, pas une erreur. " +
-  "Parametre: ?domain=<nom de domaine> (ex: example.com).";
+  "DNS records lookup for a domain: A, AAAA, MX, TXT, NS. A record type with no entries returns an empty array, " +
+  "not an error. Parameter: ?domain=<domain name> (e.g. example.com).";
 
 export const discovery = declareDiscoveryExtension({
   input: { domain: "example.com" },
   inputSchema: {
     properties: {
-      domain: { type: "string", description: "Nom de domaine a interroger (ex: example.com)." },
+      domain: { type: "string", description: "Domain name to query (e.g. example.com)." },
     },
     required: ["domain"],
   },
@@ -55,7 +55,7 @@ async function safeResolve(fn, domain) {
 export async function handler(req, res) {
   const domain = String(req.query.domain || "").trim().toLowerCase();
   if (!DOMAIN_RE.test(domain)) {
-    res.status(400).json({ error: "Parametre 'domain' invalide (nom de domaine attendu, ex: example.com)." });
+    res.status(400).json({ error: "Invalid 'domain' parameter (domain name expected, e.g. example.com)." });
     return;
   }
 
@@ -72,7 +72,7 @@ export async function handler(req, res) {
 
   const anyRecord = Object.values(result).some((arr) => arr.length > 0);
   if (!anyRecord) {
-    res.status(404).json({ error: `Aucun enregistrement DNS trouve pour "${domain}".` });
+    res.status(404).json({ error: `No DNS records found for "${domain}".` });
     return;
   }
 

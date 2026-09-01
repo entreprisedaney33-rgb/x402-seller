@@ -7,8 +7,9 @@ export const path = "/api/ai/summarize";
 export const method = "POST";
 export const price = "$0.01";
 export const description =
-  "Resume un texte en un nombre de phrases donne, via Claude Haiku 4.5. Conserve la langue du texte source. " +
-  `Corps JSON: {text: string (max ${MAX_INPUT_CHARS} caracteres), max_sentences?: entier 1-10 (defaut 3)}.`;
+  "Summarize text (article, transcript, report) into a given number of sentences, via Claude Haiku 4.5. Preserves the " +
+  "source text's language. " +
+  `JSON body: {text: string (max ${MAX_INPUT_CHARS} chars), max_sentences?: integer 1-10 (default 3)}.`;
 
 export const discovery = declareDiscoveryExtension({
   method: "POST",
@@ -16,8 +17,8 @@ export const discovery = declareDiscoveryExtension({
   input: { text: "Long article text...", max_sentences: 3 },
   inputSchema: {
     properties: {
-      text: { type: "string", description: `Texte a resumer (max ${MAX_INPUT_CHARS} caracteres).` },
-      max_sentences: { type: "integer", description: "Nombre maximum de phrases du resume (1-10, defaut 3)." },
+      text: { type: "string", description: `Text to summarize (max ${MAX_INPUT_CHARS} chars).` },
+      max_sentences: { type: "integer", description: "Maximum number of sentences in the summary (1-10, default 3)." },
     },
     required: ["text"],
   },
@@ -29,18 +30,18 @@ export const discovery = declareDiscoveryExtension({
 export async function handler(req, res) {
   const text = typeof req.body?.text === "string" ? req.body.text.trim() : "";
   if (!text) {
-    res.status(400).json({ error: "Champ 'text' requis (chaine non vide)." });
+    res.status(400).json({ error: "Field 'text' is required (non-empty string)." });
     return;
   }
   if (text.length > MAX_INPUT_CHARS) {
-    res.status(400).json({ error: `Champ 'text' trop long (max ${MAX_INPUT_CHARS} caracteres, recu ${text.length}).` });
+    res.status(400).json({ error: `Field 'text' too long (max ${MAX_INPUT_CHARS} chars, got ${text.length}).` });
     return;
   }
 
   let maxSentences = Number.parseInt(req.body?.max_sentences, 10);
   if (!Number.isFinite(maxSentences)) maxSentences = 3;
   if (maxSentences < 1 || maxSentences > 10) {
-    res.status(400).json({ error: "Champ 'max_sentences' invalide (entier entre 1 et 10 attendu)." });
+    res.status(400).json({ error: "Invalid 'max_sentences' (integer between 1 and 10 expected)." });
     return;
   }
 

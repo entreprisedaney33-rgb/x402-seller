@@ -1,7 +1,7 @@
 {
   "name": "cryptomonnaie",
   "version": "0.1.0",
-  "description": "Serveur d'API payantes via le protocole x402 (paiements USDC sur Base), destine aux agents IA",
+  "description": "Pay-per-call API server over the x402 protocol (USDC payments on Base), built for AI agents",
   "type": "module",
   "private": true,
   "engines": {
@@ -19,6 +19,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.123.0",
     "@coinbase/x402": "^2.1.0",
+    "@mozilla/readability": "^0.6.0",
     "@x402/core": "^2.24.0",
     "@x402/evm": "^2.24.0",
     "@x402/express": "^2.24.0",
@@ -27,6 +28,10 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "express-rate-limit": "^8.7.0",
+    "ipaddr.js": "^2.5.0",
+    "jsdom": "^30.0.1",
+    "robots-parser": "^3.0.1",
+    "turndown": "^7.2.4",
     "viem": "^2.56.1"
   }
 }

@@ -15,9 +15,10 @@ export const path = "/api/defi/price";
 export const method = "GET";
 export const price = "$0.005";
 export const description =
-  "Prix courant en USD d'une ou plusieurs cryptomonnaies, source DefiLlama. " +
-  "Parametre: ?coins=ethereum,bitcoin (identifiants CoinGecko separes par des virgules, ou " +
-  "'chaine:adresse' pour un token specifique, ex: ethereum:0xdac17f958d2ee523a2206206994597c13d831ec7).";
+  "Current USD price of one or more cryptocurrencies (ETH price, BTC price, any token by symbol or contract address), " +
+  "source DefiLlama. " +
+  "Parameter: ?coins=ethereum,bitcoin (comma-separated CoinGecko IDs, or " +
+  "'chain:address' for a specific token, e.g. ethereum:0xdac17f958d2ee523a2206206994597c13d831ec7).";
 
 export const discovery = declareDiscoveryExtension({
   input: { coins: "ethereum,bitcoin" },
@@ -25,7 +26,7 @@ export const discovery = declareDiscoveryExtension({
     properties: {
       coins: {
         type: "string",
-        description: "Liste d'identifiants separes par des virgules (ex: ethereum,bitcoin ou base:0x...).",
+        description: "Comma-separated list of identifiers (e.g. ethereum,bitcoin or base:0x...).",
       },
     },
     required: ["coins"],
@@ -48,7 +49,7 @@ const ID_RE = /^[a-zA-Z0-9_-]+(:[a-zA-Z0-9_-]+)?$/;
 export async function handler(req, res) {
   const raw = String(req.query.coins || "").trim();
   if (!raw) {
-    res.status(400).json({ error: "Parametre 'coins' requis (ex: ?coins=ethereum,bitcoin)." });
+    res.status(400).json({ error: "Parameter 'coins' is required (e.g. ?coins=ethereum,bitcoin)." });
     return;
   }
 
@@ -58,12 +59,12 @@ export async function handler(req, res) {
     .filter(Boolean);
 
   if (requested.length === 0 || requested.length > 20) {
-    res.status(400).json({ error: "Fournis entre 1 et 20 identifiants dans 'coins'." });
+    res.status(400).json({ error: "Provide between 1 and 20 identifiers in 'coins'." });
     return;
   }
   if (!requested.every((id) => ID_RE.test(id))) {
     res.status(400).json({
-      error: "Identifiant invalide dans 'coins' (attendu: lettres/chiffres/tirets, optionnellement 'chaine:adresse').",
+      error: "Invalid identifier in 'coins' (expected: letters/digits/dashes, optionally 'chain:address').",
     });
     return;
   }
@@ -90,7 +91,7 @@ export async function handler(req, res) {
   }
 
   if (Object.keys(prices).length === 0) {
-    res.status(404).json({ error: "Aucun prix trouve pour les identifiants fournis." });
+    res.status(404).json({ error: "No price found for the given identifiers." });
     return;
   }
 

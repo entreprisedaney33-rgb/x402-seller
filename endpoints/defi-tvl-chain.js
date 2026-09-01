@@ -12,14 +12,14 @@ export const path = "/api/defi/tvl-chain";
 export const method = "GET";
 export const price = "$0.005";
 export const description =
-  "TVL (total value locked) courant d'une blockchaine entiere (tous protocoles confondus), " +
-  "source DefiLlama. Parametre: ?chain=<slug> (ex: base, ethereum, arbitrum, solana).";
+  "Current TVL (total value locked) of an entire blockchain (all protocols combined) — chain-wide TVL, " +
+  "source DefiLlama. Parameter: ?chain=<slug> (e.g. base, ethereum, arbitrum, solana).";
 
 export const discovery = declareDiscoveryExtension({
   input: { chain: "base" },
   inputSchema: {
     properties: {
-      chain: { type: "string", description: "Slug de chaine DefiLlama (ex: base, ethereum, arbitrum)" },
+      chain: { type: "string", description: "DefiLlama chain slug (e.g. base, ethereum, arbitrum)." },
     },
     required: ["chain"],
   },
@@ -37,7 +37,7 @@ export const discovery = declareDiscoveryExtension({
 export async function handler(req, res) {
   const chain = String(req.query.chain || "").toLowerCase();
   if (!/^[a-z0-9-]{1,50}$/.test(chain)) {
-    res.status(400).json({ error: "Parametre 'chain' invalide (slug attendu, ex: base)." });
+    res.status(400).json({ error: "Invalid 'chain' parameter (slug expected, e.g. base)." });
     return;
   }
 
@@ -45,7 +45,7 @@ export async function handler(req, res) {
   const series = await cached(`tvl-chain:${chain}`, 60_000, () => fetchJson(source));
 
   if (!Array.isArray(series) || series.length === 0) {
-    res.status(404).json({ error: `Chaine inconnue chez DefiLlama: "${chain}".` });
+    res.status(404).json({ error: `Unknown chain on DefiLlama: "${chain}".` });
     return;
   }
 

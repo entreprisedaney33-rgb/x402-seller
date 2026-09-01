@@ -8,14 +8,14 @@ export const path = "/api/npm/package";
 export const method = "GET";
 export const price = "$0.005";
 export const description =
-  "Version courante, licence et telechargements de la derniere semaine d'un package npm. " +
-  "Parametre: ?name=<package> (ex: express, ou @scope/nom pour un package scope).";
+  "npm package downloads, current version, and license — latest version, license, and last week's download count " +
+  "for an npm package. Parameter: ?name=<package> (e.g. express, or @scope/name for a scoped package).";
 
 export const discovery = declareDiscoveryExtension({
   input: { name: "express" },
   inputSchema: {
     properties: {
-      name: { type: "string", description: "Nom du package npm (ex: express, @scope/nom)." },
+      name: { type: "string", description: "npm package name (e.g. express, @scope/name)." },
     },
     required: ["name"],
   },
@@ -36,7 +36,7 @@ const NAME_RE = /^(@[a-z0-9-][a-z0-9._-]*\/)?[a-z0-9-][a-z0-9._-]*$/;
 export async function handler(req, res) {
   const name = String(req.query.name || "").trim();
   if (!name || name.length > 214 || !NAME_RE.test(name)) {
-    res.status(400).json({ error: "Parametre 'name' invalide (nom de package npm attendu, ex: express)." });
+    res.status(400).json({ error: "Invalid 'name' parameter (npm package name expected, e.g. express)." });
     return;
   }
 

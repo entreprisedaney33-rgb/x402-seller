@@ -13,6 +13,7 @@ import { createFacilitatorConfig } from "@coinbase/x402";
 import config from "./config.js";
 import { buildDiscoveryDocument } from "./discovery.js";
 import { logPaiementReussi } from "./payment-log.js";
+import { logSondage } from "./sondage-log.js";
 import { safeHandler } from "./lib/http.js";
 
 // --- 1. Chargement automatique des endpoints -------------------------------
@@ -121,6 +122,27 @@ const apiLimiter = rateLimit({
   message: { error: "Trop de requetes, reessaie dans une minute." },
 });
 app.use("/api", apiLimiter);
+
+// Logs every 402 Payment Required response actually served (a "probe" — an
+// agent discovering/testing an endpoint without paying yet), in addition to
+// (never instead of) the successful-payment log above — see sondage-log.js
+// and GET /stats. Wraps res.end() BEFORE paymentMiddleware runs so it can
+// observe the final status code paymentMiddleware sets, whichever route
+// eventually sends the response.
+app.use("/api", (req, res, next) => {
+  // req.path is relative to the "/api" mount point here (Express sub-router
+  // rule) — req.baseUrl restores the "/api" prefix so the logged endpoint
+  // matches what paymentMiddleware/payment-log.js record (e.g. "/api/defi/price").
+  const endpointPath = req.baseUrl + req.path;
+  const originalEnd = res.end;
+  res.end = function wrappedEnd(...args) {
+    if (res.statusCode === 402) {
+      logSondage({ endpoint: endpointPath, ip: req.ip, userAgent: req.get("user-agent") }).catch(() => {});
+    }
+    return originalEnd.apply(res, args);
+  };
+  next();
+});
 
 if (Object.keys(paidRoutes).length > 0) {
   app.use(paymentMiddleware(paidRoutes, resourceServer));

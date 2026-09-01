@@ -7,8 +7,8 @@ export const path = "/api/ai/translate";
 export const method = "POST";
 export const price = "$0.01";
 export const description =
-  "Traduit un texte vers la langue cible demandee, via Claude Haiku 4.5. " +
-  `Corps JSON: {text: string (max ${MAX_INPUT_CHARS} caracteres), target_lang: string (ex: French, es, japonais)}.`;
+  "Translate text into any target language, via Claude Haiku 4.5. " +
+  `JSON body: {text: string (max ${MAX_INPUT_CHARS} chars), target_lang: string (e.g. French, es, Japanese)}.`;
 
 export const discovery = declareDiscoveryExtension({
   method: "POST",
@@ -16,8 +16,8 @@ export const discovery = declareDiscoveryExtension({
   input: { text: "Where is the nearest train station?", target_lang: "French" },
   inputSchema: {
     properties: {
-      text: { type: "string", description: `Texte a traduire (max ${MAX_INPUT_CHARS} caracteres).` },
-      target_lang: { type: "string", description: "Langue cible (nom ou code, ex: French, es, japonais)." },
+      text: { type: "string", description: `Text to translate (max ${MAX_INPUT_CHARS} chars).` },
+      target_lang: { type: "string", description: "Target language (name or code, e.g. French, es, Japanese)." },
     },
     required: ["text", "target_lang"],
   },
@@ -31,15 +31,15 @@ export async function handler(req, res) {
   const targetLang = typeof req.body?.target_lang === "string" ? req.body.target_lang.trim() : "";
 
   if (!text) {
-    res.status(400).json({ error: "Champ 'text' requis (chaine non vide)." });
+    res.status(400).json({ error: "Field 'text' is required (non-empty string)." });
     return;
   }
   if (text.length > MAX_INPUT_CHARS) {
-    res.status(400).json({ error: `Champ 'text' trop long (max ${MAX_INPUT_CHARS} caracteres, recu ${text.length}).` });
+    res.status(400).json({ error: `Field 'text' too long (max ${MAX_INPUT_CHARS} chars, got ${text.length}).` });
     return;
   }
   if (!targetLang || targetLang.length > 50) {
-    res.status(400).json({ error: "Champ 'target_lang' requis (ex: French, es, japonais)." });
+    res.status(400).json({ error: "Field 'target_lang' is required (e.g. French, es, Japanese)." });
     return;
   }
 

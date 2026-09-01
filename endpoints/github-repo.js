@@ -11,14 +11,14 @@ export const path = "/api/github/repo";
 export const method = "GET";
 export const price = "$0.005";
 export const description =
-  "Statistiques d'un depot GitHub public : etoiles, forks, issues ouvertes, date du dernier push, langage principal, licence. " +
-  "Parametre: ?full_name=<owner>/<repo> (ex: expressjs/express).";
+  "Stats for a public GitHub repository: stars, forks, open issues, last push date, main language, license. " +
+  "Parameter: ?full_name=<owner>/<repo> (e.g. expressjs/express).";
 
 export const discovery = declareDiscoveryExtension({
   input: { full_name: "expressjs/express" },
   inputSchema: {
     properties: {
-      full_name: { type: "string", description: "Identifiant du depot au format owner/repo." },
+      full_name: { type: "string", description: "Repository identifier in owner/repo format." },
     },
     required: ["full_name"],
   },
@@ -40,7 +40,7 @@ export const discovery = declareDiscoveryExtension({
 export async function handler(req, res) {
   const fullName = String(req.query.full_name || "").trim();
   if (!/^[\w.-]+\/[\w.-]+$/.test(fullName)) {
-    res.status(400).json({ error: "Parametre 'full_name' invalide (attendu: owner/repo, ex: expressjs/express)." });
+    res.status(400).json({ error: "Invalid 'full_name' parameter (expected: owner/repo, e.g. expressjs/express)." });
     return;
   }
 

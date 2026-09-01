@@ -1,10 +1,10 @@
-// GET /health — endpoint gratuit de verification de vie du serveur.
-// price: null => l'endpoint n'est PAS protege par le middleware x402.
+// GET /health — free liveness check endpoint.
+// price: null => this endpoint is NOT protected by the x402 middleware.
 
 export const path = "/health";
 export const method = "GET";
 export const price = null;
-export const description = "Verification de vie du serveur (gratuit).";
+export const description = "Server liveness check (free).";
 
 export async function handler(req, res) {
   res.json({ ok: true });

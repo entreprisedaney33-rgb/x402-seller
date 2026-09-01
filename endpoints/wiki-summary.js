@@ -10,15 +10,16 @@ export const path = "/api/wiki/summary";
 export const method = "GET";
 export const price = "$0.005";
 export const description =
-  "Resume d'un article Wikipedia (extrait, description, image, lien) — contenu CC BY-SA, attribution incluse dans la reponse. " +
-  "Parametres: ?title=<titre exact de l'article> (ex: Bitcoin), ?lang=<code langue> (defaut en).";
+  "Wikipedia article summary (extract, short description, thumbnail image, canonical link) for a given title — " +
+  "CC BY-SA content, attribution included in every response. " +
+  "Parameters: ?title=<exact article title> (e.g. Bitcoin), ?lang=<language code> (default en).";
 
 export const discovery = declareDiscoveryExtension({
   input: { title: "Bitcoin", lang: "en" },
   inputSchema: {
     properties: {
-      title: { type: "string", description: "Titre exact de l'article Wikipedia (sensible a la casse pour certains mots)." },
-      lang: { type: "string", description: "Code langue Wikipedia (ex: en, fr, de). Defaut: en." },
+      title: { type: "string", description: "Exact Wikipedia article title (case-sensitive for some words)." },
+      lang: { type: "string", description: "Wikipedia language code (e.g. en, fr, de). Default: en." },
     },
     required: ["title"],
   },
@@ -44,11 +45,11 @@ export async function handler(req, res) {
   const lang = String(req.query.lang || "en").toLowerCase();
 
   if (!title || title.length > 300) {
-    res.status(400).json({ error: "Parametre 'title' requis (titre d'article Wikipedia, ex: Bitcoin)." });
+    res.status(400).json({ error: "Field 'title' is required (a Wikipedia article title, e.g. Bitcoin)." });
     return;
   }
   if (!/^[a-z]{2,10}$/.test(lang)) {
-    res.status(400).json({ error: "Parametre 'lang' invalide (code langue attendu, ex: en, fr)." });
+    res.status(400).json({ error: "Invalid 'lang' parameter (language code expected, e.g. en, fr)." });
     return;
   }
 
@@ -59,7 +60,7 @@ export async function handler(req, res) {
     );
   } catch (err) {
     if (err instanceof UpstreamError && err.status === 404) {
-      res.status(404).json({ error: `Aucun article Wikipedia trouve pour "${title}" (${lang}).` });
+      res.status(404).json({ error: `No Wikipedia article found for "${title}" (${lang}).` });
       return;
     }
     throw err;

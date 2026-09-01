@@ -7,8 +7,9 @@ export const path = "/api/ai/classify";
 export const method = "POST";
 export const price = "$0.01";
 export const description =
-  "Classe un texte dans l'une des etiquettes fournies, avec un score de confiance, via Claude Haiku 4.5. " +
-  `Corps JSON: {text: string (max ${MAX_INPUT_CHARS} caracteres), labels: string[] (2 a 20 etiquettes)}.`;
+  "Text classification (sentiment analysis, topic tagging, intent detection, moderation labels...) into one of your " +
+  "own labels, with a confidence score, via Claude Haiku 4.5. " +
+  `JSON body: {text: string (max ${MAX_INPUT_CHARS} chars), labels: string[] (2 to 20 labels)}.`;
 
 export const discovery = declareDiscoveryExtension({
   method: "POST",
@@ -16,8 +17,8 @@ export const discovery = declareDiscoveryExtension({
   input: { text: "The product arrived broken and support never replied.", labels: ["positive", "negative", "neutral"] },
   inputSchema: {
     properties: {
-      text: { type: "string", description: `Texte a classer (max ${MAX_INPUT_CHARS} caracteres).` },
-      labels: { type: "array", items: { type: "string" }, description: "Liste des etiquettes possibles (2 a 20)." },
+      text: { type: "string", description: `Text to classify (max ${MAX_INPUT_CHARS} chars).` },
+      labels: { type: "array", items: { type: "string" }, description: "List of possible labels (2 to 20)." },
     },
     required: ["text", "labels"],
   },
@@ -31,15 +32,15 @@ export async function handler(req, res) {
   const labels = Array.isArray(req.body?.labels) ? req.body.labels : null;
 
   if (!text) {
-    res.status(400).json({ error: "Champ 'text' requis (chaine non vide)." });
+    res.status(400).json({ error: "Field 'text' is required (non-empty string)." });
     return;
   }
   if (text.length > MAX_INPUT_CHARS) {
-    res.status(400).json({ error: `Champ 'text' trop long (max ${MAX_INPUT_CHARS} caracteres, recu ${text.length}).` });
+    res.status(400).json({ error: `Field 'text' too long (max ${MAX_INPUT_CHARS} chars, got ${text.length}).` });
     return;
   }
   if (!labels || labels.length < 2 || labels.length > 20 || !labels.every((l) => typeof l === "string" && l.trim())) {
-    res.status(400).json({ error: "Champ 'labels' requis (tableau de 2 a 20 chaines non vides)." });
+    res.status(400).json({ error: "Field 'labels' is required (array of 2 to 20 non-empty strings)." });
     return;
   }
 
@@ -55,7 +56,7 @@ export async function handler(req, res) {
 
     const parsed = extractJson(raw);
     if (!parsed || typeof parsed.label !== "string" || !labels.includes(parsed.label)) {
-      res.status(502).json({ error: "Le modele a renvoye une etiquette invalide, reessaie." });
+      res.status(502).json({ error: "The model returned an invalid label, try again." });
       return;
     }
 

@@ -1,33 +1,33 @@
-// discovery.js — construit le document de decouverte servi sur
+// discovery.js — builds the discovery document served at
 // GET /.well-known/x402.json.
 //
-// Le protocole x402 (docs.x402.org/extensions/bazaar) definit la decouverte
-// "Bazaar" cote FACILITATEUR : GET {facilitator}/discovery/resources, nourri
-// par les metadonnees que chaque route declare via l'extension bazaar (voir
-// endpoints/defi-tvl.js -> declareDiscoveryExtension, deja renvoyees telles
-// quelles dans nos vraies reponses 402 PAYMENT-REQUIRED). Il n'existe PAS de
-// schema officiel unique pour un fichier .well-known cote serveur.
+// The x402 protocol (docs.x402.org/extensions/bazaar) defines "Bazaar"
+// discovery on the FACILITATOR side: GET {facilitator}/discovery/resources,
+// fed by the metadata each route declares via the bazaar extension (see
+// endpoints/defi-tvl.js -> declareDiscoveryExtension, already returned as-is
+// in our real 402 PAYMENT-REQUIRED responses). There is NO single official
+// schema for a server-side .well-known file.
 //
-// Le seul document normatif pour ce chemin est le brouillon IETF
+// The only normative document for this path is the IETF draft
 // "Discovering x402 Payment Capability via DNS and a Well-Known URI"
-// (draft-hawkins-x402-dns-discovery), qui definit :
-//   - le chemin /.well-known/x402 (le suffixe .json est un alias tolere
-//     par plusieurs implementations communautaires, dont awesome-x402)
-//   - l'enveloppe { x402Version, kind, name, description, resources[],
+// (draft-hawkins-x402-dns-discovery), which defines:
+//   - the path /.well-known/x402 (the .json suffix is an alias tolerated
+//     by several community implementations, including awesome-x402)
+//   - the envelope { x402Version, kind, name, description, resources[],
 //     docs, updated }
 //   - kind: "facilitator" | "resource-server" | "both"
-//   - resources[] minimal : { url, method, description }
+//   - a minimal resources[] entry: { url, method, description }
 //
-// Ce document reprend cette enveloppe (le seul format documente pour ce
-// chemin) et enrichit chaque ressource avec les MEMES champs de prix/reseau
-// et de schema d'entree/sortie deja utilises ailleurs dans ce serveur
-// (accepts + extensions.bazaar), plutot que d'inventer un schema tiers.
+// This document follows that envelope (the only documented format for this
+// path) and enriches each resource with the SAME price/network and
+// input/output schema fields already used elsewhere in this server
+// (accepts + extensions.bazaar), rather than inventing a third schema.
 import { readFileSync } from "node:fs";
 
 const pkg = JSON.parse(readFileSync(new URL("./package.json", import.meta.url)));
 
-// endpoints: la liste construite par server.js (path, method, price,
-// description, discovery) ; config: l'export par defaut de config.js.
+// endpoints: the list built by server.js (path, method, price, description,
+// discovery); config: config.js's default export.
 export function buildDiscoveryDocument(endpoints, config) {
   const resources = endpoints
     .filter((ep) => ep.price != null)

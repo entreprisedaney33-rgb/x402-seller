@@ -12,16 +12,16 @@ export const path = "/api/defi/yields";
 export const method = "GET";
 export const price = "$0.005";
 export const description =
-  "Meilleurs rendements (APY) des pools DeFi, tries decroissant, source DefiLlama. " +
-  "Parametres optionnels: ?chain=<slug> (ex: base), ?min_tvl=<usd> (TVL minimum du pool), ?limit=<n> (defaut 20, max 100).";
+  "Best DeFi yields (APY) across lending/liquidity pools, highest first, source DefiLlama. " +
+  "Optional parameters: ?chain=<slug> (e.g. base), ?min_tvl=<usd> (minimum pool TVL), ?limit=<n> (default 20, max 100).";
 
 export const discovery = declareDiscoveryExtension({
   input: { chain: "base", min_tvl: 1000000 },
   inputSchema: {
     properties: {
-      chain: { type: "string", description: "Filtre par nom de chaine (ex: base, ethereum). Optionnel." },
-      min_tvl: { type: "number", description: "TVL minimum du pool en USD. Optionnel." },
-      limit: { type: "integer", description: "Nombre de pools a renvoyer (1-100, defaut 20)." },
+      chain: { type: "string", description: "Filter by chain name (e.g. base, ethereum). Optional." },
+      min_tvl: { type: "number", description: "Minimum pool TVL in USD. Optional." },
+      limit: { type: "integer", description: "Number of pools to return (1-100, default 20)." },
     },
     required: [],
   },
@@ -44,7 +44,7 @@ export async function handler(req, res) {
   if (req.query.min_tvl !== undefined) {
     minTvl = Number(req.query.min_tvl);
     if (!Number.isFinite(minTvl) || minTvl < 0) {
-      res.status(400).json({ error: "Parametre 'min_tvl' invalide (nombre positif attendu)." });
+      res.status(400).json({ error: "Invalid 'min_tvl' parameter (positive number expected)." });
       return;
     }
   }
@@ -52,7 +52,7 @@ export async function handler(req, res) {
   let limit = Number.parseInt(req.query.limit, 10);
   if (!Number.isFinite(limit)) limit = 20;
   if (limit < 1 || limit > 100) {
-    res.status(400).json({ error: "Parametre 'limit' invalide (entier entre 1 et 100 attendu)." });
+    res.status(400).json({ error: "Invalid 'limit' parameter (integer between 1 and 100 expected)." });
     return;
   }
 

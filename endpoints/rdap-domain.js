@@ -9,14 +9,14 @@ export const path = "/api/rdap/domain";
 export const method = "GET";
 export const price = "$0.005";
 export const description =
-  "Donnees RDAP d'un domaine (statut, dates de creation/expiration, registrar, serveurs de noms) via rdap.org. " +
-  "Parametre: ?domain=<nom de domaine> (ex: example.com).";
+  "RDAP domain lookup — status, registration/expiration dates, registrar, name servers (RDAP is the structured, " +
+  "successor protocol to WHOIS), via rdap.org. Parameter: ?domain=<domain name> (e.g. example.com).";
 
 export const discovery = declareDiscoveryExtension({
   input: { domain: "example.com" },
   inputSchema: {
     properties: {
-      domain: { type: "string", description: "Nom de domaine a interroger (ex: example.com)." },
+      domain: { type: "string", description: "Domain name to query (e.g. example.com)." },
     },
     required: ["domain"],
   },
@@ -38,7 +38,7 @@ const DOMAIN_RE = /^(?=.{1,253}$)([a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\
 export async function handler(req, res) {
   const domain = String(req.query.domain || "").trim().toLowerCase();
   if (!DOMAIN_RE.test(domain)) {
-    res.status(400).json({ error: "Parametre 'domain' invalide (nom de domaine attendu, ex: example.com)." });
+    res.status(400).json({ error: "Invalid 'domain' parameter (domain name expected, e.g. example.com)." });
     return;
   }
 
@@ -51,7 +51,7 @@ export async function handler(req, res) {
     );
   } catch (err) {
     if (err instanceof UpstreamError && err.status === 404) {
-      res.status(404).json({ error: `Aucune donnee RDAP trouvee pour "${domain}" (domaine inconnu ou non delegue).` });
+      res.status(404).json({ error: `No RDAP data found for "${domain}" (unknown or undelegated domain).` });
       return;
     }
     throw err;

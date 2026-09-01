@@ -12,14 +12,14 @@ export const path = "/api/defi/stablecoins";
 export const method = "GET";
 export const price = "$0.005";
 export const description =
-  "Capitalisation en circulation des principaux stablecoins, triee decroissante, source DefiLlama. " +
-  "Parametre optionnel: ?limit=<n> (1-100, defaut 20).";
+  "Circulating market cap of the top stablecoins (USDT, USDC, DAI...), highest first, source DefiLlama. " +
+  "Optional parameter: ?limit=<n> (1-100, default 20).";
 
 export const discovery = declareDiscoveryExtension({
   input: {},
   inputSchema: {
     properties: {
-      limit: { type: "integer", description: "Nombre de stablecoins a renvoyer (1-100, defaut 20)." },
+      limit: { type: "integer", description: "Number of stablecoins to return (1-100, default 20)." },
     },
     required: [],
   },
@@ -39,7 +39,7 @@ export async function handler(req, res) {
   let limit = Number.parseInt(req.query.limit, 10);
   if (!Number.isFinite(limit)) limit = 20;
   if (limit < 1 || limit > 100) {
-    res.status(400).json({ error: "Parametre 'limit' invalide (entier entre 1 et 100 attendu)." });
+    res.status(400).json({ error: "Invalid 'limit' parameter (integer between 1 and 100 expected)." });
     return;
   }
 

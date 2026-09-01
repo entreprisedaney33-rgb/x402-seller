@@ -9,14 +9,15 @@ export const path = "/api/chain/block";
 export const method = "GET";
 export const price = "$0.005";
 export const description =
-  "Dernier bloc connu (numero, horodatage, hash) d'une blockchaine EVM, lu en direct via RPC public (viem). " +
-  `Parametre: ?chain=<${SUPPORTED_CHAINS.join("|")}>.`;
+  "Latest known block (number, timestamp, hash) of an EVM blockchain, read live via a public RPC endpoint (viem) — " +
+  "no API key, no aggregator. " +
+  `Parameter: ?chain=<${SUPPORTED_CHAINS.join("|")}>.`;
 
 export const discovery = declareDiscoveryExtension({
   input: { chain: "base" },
   inputSchema: {
     properties: {
-      chain: { type: "string", enum: SUPPORTED_CHAINS, description: "Chaine EVM interrogee." },
+      chain: { type: "string", enum: SUPPORTED_CHAINS, description: "EVM chain to query." },
     },
     required: ["chain"],
   },
@@ -35,7 +36,7 @@ export async function handler(req, res) {
   const chainName = String(req.query.chain || "").toLowerCase();
   const client = getPublicClient(chainName);
   if (!client) {
-    res.status(400).json({ error: `Parametre 'chain' invalide. Valeurs acceptees: ${SUPPORTED_CHAINS.join(", ")}.` });
+    res.status(400).json({ error: `Invalid 'chain' parameter. Accepted values: ${SUPPORTED_CHAINS.join(", ")}.` });
     return;
   }
 
@@ -43,7 +44,7 @@ export async function handler(req, res) {
     try {
       return await client.getBlock();
     } catch (err) {
-      throw new UpstreamError(`RPC ${chainName} injoignable : ${err.message}`, { status: 502 });
+      throw new UpstreamError(`RPC ${chainName} unreachable: ${err.message}`, { status: 502 });
     }
   });
 
