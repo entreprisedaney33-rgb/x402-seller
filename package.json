@@ -1,0 +1,26 @@
+{
+  "name": "cryptomonnaie",
+  "version": "0.1.0",
+  "description": "Serveur d'API payantes via le protocole x402 (paiements USDC sur Base), destine aux agents IA",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "generate-buyer-wallet": "node scripts/generate-buyer-wallet.js",
+    "buyer-test": "node scripts/buyer-test.js"
+  },
+  "dependencies": {
+    "@coinbase/x402": "^2.1.0",
+    "@x402/core": "^2.24.0",
+    "@x402/evm": "^2.24.0",
+    "@x402/express": "^2.24.0",
+    "@x402/extensions": "^2.24.0",
+    "@x402/fetch": "^2.24.0",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "viem": "^2.56.1"
+  }
+}
