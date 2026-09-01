@@ -12,6 +12,7 @@ import { HTTPFacilitatorClient } from "@x402/core/server";
 import { createFacilitatorConfig } from "@coinbase/x402";
 import config from "./config.js";
 import { buildDiscoveryDocument } from "./discovery.js";
+import { buildOpenApiDocument } from "./openapi.js";
 import { logPaiementReussi } from "./payment-log.js";
 import { logSondage } from "./sondage-log.js";
 import { safeHandler } from "./lib/http.js";
@@ -161,6 +162,26 @@ app.get("/.well-known/x402.json", (req, res) => {
   res.json(buildDiscoveryDocument(endpoints, config));
 });
 
+// Document OpenAPI-first ("recommended" discovery path for x402scan and
+// others) — voir openapi.js pour le detail du format et ses sources.
+app.get("/openapi.json", (req, res) => {
+  res.json(buildOpenApiDocument(endpoints, config));
+});
+
+// Favicon minimal (un simple "$" sur cercle plein) — sert uniquement a
+// satisfaire les audits de decouverte (ex. @agentcash/discovery, utilise
+// par x402scan) qui verifient /favicon.svg par un HEAD puis un GET avec
+// Content-Type image/*. Aucune dependance, cree pour ce projet.
+const FAVICON_SVG =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">' +
+  '<circle cx="16" cy="16" r="16" fill="#0F172A"/>' +
+  '<text x="16" y="22" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" ' +
+  'font-size="18" font-weight="bold" fill="#22D3A8">$</text>' +
+  "</svg>";
+app.get("/favicon.svg", (req, res) => {
+  res.set("Cache-Control", "public, max-age=86400").type("image/svg+xml").send(FAVICON_SVG);
+});
+
 app.listen(config.port, "0.0.0.0", () => {
   console.log(`Serveur x402 demarre sur http://0.0.0.0:${config.port}`);
   console.log(`URL publique annoncee aux agents: ${config.baseUrl}`);
@@ -180,4 +201,5 @@ app.listen(config.port, "0.0.0.0", () => {
     console.log(`  ${ep.method} ${ep.path} [${tag}] — ${ep.description}`);
   }
   console.log(`  GET /.well-known/x402.json [gratuit] — decouverte pour agents.`);
+  console.log(`  GET /openapi.json [gratuit] — decouverte OpenAPI-first (x402scan et al.).`);
 });
