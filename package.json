@@ -11,7 +11,9 @@
     "start": "node server.js",
     "generate-buyer-wallet": "node scripts/generate-buyer-wallet.js",
     "buyer-test": "node scripts/buyer-test.js",
-    "cle": "node scripts/importer-cle-cdp.js"
+    "buyer-test:prod": "TARGET_URL=https://x402-seller-0ay3.onrender.com node scripts/buyer-test.js",
+    "cle": "node scripts/importer-cle-cdp.js",
+    "bazaar": "node scripts/check-bazaar.js"
   },
   "dependencies": {
     "@coinbase/x402": "^2.1.0",
