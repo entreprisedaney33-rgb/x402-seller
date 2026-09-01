@@ -112,14 +112,13 @@ Every settled payment is logged server-side (endpoint, payer address, amount, tx
 
 ## Discovery: how does an agent even find this API?
 
-Payment infra is useless if nothing finds your endpoints. Four discovery surfaces, in the order I wired them up:
+Payment infra is useless if nothing finds your endpoints. Five discovery surfaces, in the order I wired them up:
 
 - **`GET /.well-known/x402.json`** — a self-hosted manifest listing every paid route with its price, network, `payTo`, and input/output schema. There's no single official schema for this exact path; I followed the envelope from the IETF draft *"Discovering x402 Payment Capability via DNS and a Well-Known URI"* (`x402Version`, `kind`, `resources[]`) and enriched each resource with the same Bazaar metadata used elsewhere.
 - **`GET /openapi.json`** — an OpenAPI document generated from the same endpoint list, because several x402 directories (x402scan among them) prefer discovering via OpenAPI over a custom format.
 - **CDP's Bazaar** — the "official" x402 discovery index, but it lives on the *facilitator* side, not the server. There's no registration call: the facilitator's catalog builds itself from payments it has already settled. I wrote a script (`npm run bazaar`) that pages through `facilitatorClient.extensions.bazaar.listResources()` and filters for our `payTo` address to confirm we're actually indexed.
 - **x402scan** — a community directory with its own registry API, gated by Sign-In-With-X (a wallet-signature challenge, CAIP-122 style) rather than payment or a classic account. A `POST /api/x402/registry/register-origin {origin}` call makes it crawl our `/openapi.json` and register everything in one shot.
-
-I also looked at **x402 Arena**, another community leaderboard-style directory for x402 servers — but I haven't actually integrated with it yet, so I won't pretend otherwise here. It's on the list.
+- **x402 Arena** — another community directory for x402 servers, registered with a plain `POST core.x402arena.gg/register` against our `/api/gas/base` endpoint. No facilitator involvement, no on-chain proof required at registration time — it shows up `verified:true` in their public agent list (`GET core.x402arena.gg/agents`) after a health check against the live endpoint.
 
 ## Pitfalls, in the order I actually hit them
 
