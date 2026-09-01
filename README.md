@@ -68,6 +68,26 @@ parametres d'entree et un exemple de sortie — voir `endpoints/defi-tvl.js`.
 | `ANTHROPIC_API_KEY` | Pour de futurs endpoints IA payants (inutilisee pour l'instant) |
 | `PORT` | Port du serveur (4021) |
 
+### Importer la cle CDP (`npm run cle`)
+
+Pour passer en production sans copier-coller `CDP_API_KEY_ID`/`CDP_API_KEY_SECRET`
+a la main dans le `.env` :
+
+```bash
+npm run cle
+```
+
+1. **1er lancement** : cree `CLE_API_CDP.txt` a la racine (gabarit avec 2 zones
+   a remplir) et l'ouvre dans TextEdit. Colle le Key ID (une ligne) et le
+   Secret (peut etre un bloc PEM multi-lignes), enregistre.
+2. **2eme lancement** (`npm run cle` a nouveau) : lit le fichier, ecrit
+   `CDP_API_KEY_ID`/`CDP_API_KEY_SECRET` dans le `.env` (le secret multi-ligne
+   est stocke entre guillemets avec des `\n` litteraux — `dotenv` les
+   reconvertit en vrais retours a la ligne au chargement), bascule
+   `NETWORK=base`, supprime `CLE_API_CDP.txt` et l'ajoute au `.gitignore`.
+   Le secret n'est **jamais affiche**, seule sa taille (nombre de lignes) est
+   confirmee.
+
 Facilitateurs :
 
 - **base-sepolia** → facilitateur public de test `https://x402.org/facilitator`, sans cle.
