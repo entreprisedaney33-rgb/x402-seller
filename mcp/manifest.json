@@ -1,0 +1,50 @@
+{
+  "manifest_version": "0.3",
+  "name": "x402-seller-mcp",
+  "display_name": "x402 Seller",
+  "version": "0.1.0",
+  "description": "Pay-per-call access to x402-seller's paid API endpoints (crypto prices, DeFi data, on-chain reads, web reading, AI tasks) in USDC on Base — no API key.",
+  "long_description": "Turns every paid endpoint of x402-seller (https://x402-seller-0ay3.onrender.com) into an MCP tool, generated at startup from its own x402 discovery document — so the tool list stays correct as endpoints change.\n\nWorks in two modes:\n\n- **No wallet configured**: calling a tool returns an explanation of the 402 payment challenge (price, network, how to pay) instead of the real result.\n- **Wallet configured** (via the Buyer wallet private key setting below): calls are paid automatically over x402 and return the real result plus the settlement receipt (payer address, transaction hash).\n\nOnly ever configure a throwaway wallet funded with a small amount of USDC on Base — never a wallet holding significant funds.",
+  "author": {
+    "name": "Matheo Daney",
+    "email": "altaestima.contact@gmail.com",
+    "url": "https://x402-seller-0ay3.onrender.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/entreprisedaney33-rgb/x402-seller.git"
+  },
+  "homepage": "https://x402-seller-0ay3.onrender.com",
+  "documentation": "https://github.com/entreprisedaney33-rgb/x402-seller/blob/main/mcp/README.md",
+  "support": "https://github.com/entreprisedaney33-rgb/x402-seller/issues",
+  "server": {
+    "type": "node",
+    "entry_point": "server.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/server.js"],
+      "env": {
+        "BUYER_PRIVATE_KEY": "${user_config.buyer_private_key}"
+      }
+    }
+  },
+  "tools_generated": true,
+  "keywords": ["x402", "usdc", "payments", "crypto", "defi", "api", "agents"],
+  "license": "MIT",
+  "compatibility": {
+    "claude_desktop": ">=1.0.0",
+    "platforms": ["darwin", "win32", "linux"],
+    "runtimes": {
+      "node": ">=20.0.0"
+    }
+  },
+  "user_config": {
+    "buyer_private_key": {
+      "type": "string",
+      "title": "Buyer wallet private key (optional)",
+      "description": "EVM private key (0x...) of a THROWAWAY wallet funded with a small amount of USDC on Base. Leave empty to use explain-only mode (tool calls describe the payment required instead of paying). Never use a wallet holding significant funds.",
+      "sensitive": true,
+      "required": false
+    }
+  }
+}
