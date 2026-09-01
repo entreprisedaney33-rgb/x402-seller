@@ -2,10 +2,23 @@ services:
   - type: web
     name: x402-seller
     runtime: node
-    plan: free
+    # "starter" (pas "free") : les disques persistants ne sont pas supportes
+    # sur le plan gratuit ("disk not supported for free tier service",
+    # confirme par l'API Render) — necessaire pour que le disque ci-dessous
+    # (logs/paiements.jsonl, logs/sondages.jsonl) survive aux redeploiements.
+    plan: starter
     buildCommand: npm install
     startCommand: npm start
     healthCheckPath: /health
+    # Disque persistant pour les journaux (payment-log.js, sondage-log.js,
+    # lib/stats.js, lib/stats-daily.js) — sans lui, ils sont perdus a chaque
+    # redeploiement (disque ephemere par defaut). Attacher un disque
+    # desactive les deploiements sans coupure (Render arrete l'instance
+    # existante avant de demarrer la nouvelle) : accepte pour ce service.
+    disk:
+      name: x402-seller-data
+      mountPath: /var/data
+      sizeGB: 1
     envVars:
       - key: NETWORK
         sync: false
@@ -23,3 +36,7 @@ services:
         sync: false
       - key: STATS_KEY
         sync: false
+      # Fixe (pas sync:false) : lie directement au mountPath du disque
+      # declare ci-dessus, pas une valeur secrete a saisir par environnement.
+      - key: DATA_DIR
+        value: /var/data

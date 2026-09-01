@@ -1,5 +1,7 @@
 // payment-log.js — journal append-only des paiements reussis, 1 ligne
-// JSON par paiement dans logs/paiements.jsonl.
+// JSON par paiement dans <DATA_DIR>/paiements.jsonl (voir config.js —
+// DATA_DIR doit pointer vers un disque persistant en production, sinon ce
+// journal est perdu a chaque redeploiement Render).
 //
 // Champs ecrits, TOUS publics/non-sensibles (adresse de payeur et hash de
 // transaction sont deja visibles sur la blockchain) : date, endpoint, payer,
@@ -8,14 +10,15 @@
 // qu'aucun secret ni payload de paiement signe ne peut finir dans le log,
 // meme si la forme des objets du SDK evolue.
 import { mkdir, appendFile } from "node:fs/promises";
+import { join } from "node:path";
+import config from "./config.js";
 
-const logDir = new URL("./logs/", import.meta.url);
-const logFile = new URL("./logs/paiements.jsonl", import.meta.url);
+const logFile = join(config.dataDir, "paiements.jsonl");
 let dirReady = null;
 
 async function ensureLogDir() {
   if (!dirReady) {
-    dirReady = mkdir(logDir, { recursive: true });
+    dirReady = mkdir(config.dataDir, { recursive: true });
   }
   await dirReady;
 }
@@ -35,6 +38,6 @@ export async function logPaiementReussi({ endpoint, payer, montant, hash }) {
   } catch (err) {
     // Un souci d'ecriture du journal ne doit jamais faire echouer un
     // paiement deja regle — on se contente de le signaler.
-    console.error("Impossible d'ecrire dans logs/paiements.jsonl :", err.message);
+    console.error(`Impossible d'ecrire dans ${logFile} :`, err.message);
   }
 }

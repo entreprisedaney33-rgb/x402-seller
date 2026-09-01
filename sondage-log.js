@@ -1,21 +1,24 @@
 // sondage-log.js — append-only log of every 402 Payment Required response
-// served (logs/sondages.jsonl), one JSON line per "probe" — an agent that
-// discovers/tests an endpoint without (yet) paying. Mirrors payment-log.js
-// (same append-only jsonl pattern, same explicit-field-list discipline: no
-// secret or signed payload can ever end up in the log).
+// served (<DATA_DIR>/sondages.jsonl, see config.js — DATA_DIR must point to
+// a persistent disk in production, or this log is lost on every Render
+// redeploy), one JSON line per "probe" — an agent that discovers/tests an
+// endpoint without (yet) paying. Mirrors payment-log.js (same append-only
+// jsonl pattern, same explicit-field-list discipline: no secret or signed
+// payload can ever end up in the log).
 //
 // Fields written: date, endpoint, ip (truncated — last octet/group zeroed,
 // never the full client IP), user_agent. No query string, no headers, no
 // request body — nothing that could carry sensitive data.
 import { mkdir, appendFile } from "node:fs/promises";
+import { join } from "node:path";
+import config from "./config.js";
 
-const logDir = new URL("./logs/", import.meta.url);
-const logFile = new URL("./logs/sondages.jsonl", import.meta.url);
+const logFile = join(config.dataDir, "sondages.jsonl");
 let dirReady = null;
 
 async function ensureLogDir() {
   if (!dirReady) {
-    dirReady = mkdir(logDir, { recursive: true });
+    dirReady = mkdir(config.dataDir, { recursive: true });
   }
   await dirReady;
 }
@@ -52,6 +55,6 @@ export async function logSondage({ endpoint, ip, userAgent }) {
   } catch (err) {
     // A logging hiccup must never break the actual 402 response already
     // sent to the client — just report it.
-    console.error("Could not write to logs/sondages.jsonl:", err.message);
+    console.error(`Could not write to ${logFile}:`, err.message);
   }
 }
