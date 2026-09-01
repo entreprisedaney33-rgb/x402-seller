@@ -38,6 +38,18 @@ if (isMainnet && (!cdpApiKeyId || !cdpApiKeySecret)) {
   );
 }
 
+const port = Number(process.env.PORT || 4021);
+
+// URL publique annoncee aux agents (metadonnees Bazaar, .well-known/x402.json).
+// En local, replie sur localhost si BASE_URL n'est pas defini ; en production
+// (Render), BASE_URL doit TOUJOURS pointer vers le vrai domaine public.
+if (process.env.BASE_URL && !/^https?:\/\//.test(process.env.BASE_URL)) {
+  throw new Error(
+    `BASE_URL invalide: "${process.env.BASE_URL}" (doit commencer par http:// ou https://).`
+  );
+}
+const baseUrl = (process.env.BASE_URL || `http://localhost:${port}`).replace(/\/$/, "");
+
 export default {
   // "base-sepolia" ou "base"
   network,
@@ -49,6 +61,10 @@ export default {
   cdpApiKeySecret,
   buyerPrivateKey: process.env.BUYER_PRIVATE_KEY || "",
   anthropicApiKey: process.env.ANTHROPIC_API_KEY || "",
-  port: Number(process.env.PORT || 4021),
+  port,
+  // URL publique de CE serveur, sans slash final. Toute ressource annoncee
+  // aux agents (Bazaar, .well-known/x402.json) doit etre construite a partir
+  // de cette valeur, jamais deduite de l'hote de la requete entrante.
+  baseUrl,
   testnetFacilitatorUrl: TESTNET_FACILITATOR_URL,
 };

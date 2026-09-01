@@ -5,11 +5,14 @@
 // price: null => endpoint gratuit ; price: "$0.005" => protege par x402.
 import { readdir } from "node:fs/promises";
 import express from "express";
+import { rateLimit } from "express-rate-limit";
 import { paymentMiddleware, x402ResourceServer } from "@x402/express";
 import { ExactEvmScheme } from "@x402/evm/exact/server";
 import { HTTPFacilitatorClient } from "@x402/core/server";
 import { createFacilitatorConfig } from "@coinbase/x402";
 import config from "./config.js";
+import { buildDiscoveryDocument } from "./discovery.js";
+import { logPaiementReussi } from "./payment-log.js";
 
 // --- 1. Chargement automatique des endpoints -------------------------------
 
@@ -54,6 +57,26 @@ const resourceServer = new x402ResourceServer(facilitatorClient).register(
   new ExactEvmScheme()
 );
 
+// Journal des paiements reussis (logs/paiements.jsonl) — voir payment-log.js.
+// ctx.transportContext.request.path est le chemin HTTP reellement appele
+// (voir @x402/core, x402HTTPResourceServer.process : transportContext =
+// { request: enrichedContext }, enrichedContext porte path/method).
+resourceServer.onAfterSettle(async (ctx) => {
+  if (!ctx.result?.success) return;
+
+  const endpointPath = ctx.transportContext?.request?.path || ctx.paymentPayload?.resource?.url || null;
+  const matchedEndpoint = endpoints.find((ep) => ep.path === endpointPath);
+
+  await logPaiementReussi({
+    endpoint: endpointPath,
+    payer: ctx.result.payer || null,
+    // Le prix declare pour la route est EXACTEMENT ce que le schema "exact"
+    // fait payer (pas de negociation) — plus lisible qu'un montant atomique.
+    montant: matchedEndpoint?.price || null,
+    hash: ctx.result.transaction || null,
+  });
+});
+
 // --- 3. Routes payantes pour le middleware ---------------------------------
 
 const paidRoutes = {};
@@ -66,6 +89,9 @@ for (const ep of endpoints) {
       network: config.caip2Network,
       payTo: config.payToAddress,
     },
+    // Force l'URL de ressource annoncee (402, Bazaar) sur BASE_URL, jamais
+    // deduite de l'hote de la requete entrante (jamais localhost en prod).
+    resource: `${config.baseUrl}${ep.path}`,
     description: ep.description,
     mimeType: "application/json",
     ...(ep.discovery ? { extensions: ep.discovery } : {}),
@@ -76,6 +102,21 @@ for (const ep of endpoints) {
 
 const app = express();
 
+// Derriere le reverse proxy de Render, fait confiance au 1er X-Forwarded-For
+// pour que req.ip refere le vrai client (indispensable pour le rate-limit
+// par IP et pour un req.protocol/hostname corrects).
+app.set("trust proxy", 1);
+
+// Rate-limit simple par IP sur les routes payantes (/api/*) : 60 req/min.
+const apiLimiter = rateLimit({
+  windowMs: 60_000,
+  limit: 60,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  message: { error: "Trop de requetes, reessaie dans une minute." },
+});
+app.use("/api", apiLimiter);
+
 if (Object.keys(paidRoutes).length > 0) {
   app.use(paymentMiddleware(paidRoutes, resourceServer));
 }
@@ -84,8 +125,21 @@ for (const ep of endpoints) {
   app[ep.method.toLowerCase()](ep.path, ep.handler);
 }
 
-app.listen(config.port, () => {
-  console.log(`Serveur x402 demarre sur http://localhost:${config.port}`);
+// Document de decouverte pour les agents (voir discovery.js pour le detail
+// du format et ses sources documentees).
+app.get("/.well-known/x402.json", (req, res) => {
+  res.json(buildDiscoveryDocument(endpoints, config));
+});
+
+app.listen(config.port, "0.0.0.0", () => {
+  console.log(`Serveur x402 demarre sur http://0.0.0.0:${config.port}`);
+  console.log(`URL publique annoncee aux agents: ${config.baseUrl}`);
+  if (config.baseUrl.includes("localhost")) {
+    console.warn(
+      "ATTENTION: BASE_URL n'est pas defini (repli sur localhost) — " +
+        "a corriger avant tout deploiement reel."
+    );
+  }
   console.log(`Reseau: ${config.network} (${config.caip2Network})`);
   console.log(
     `Facilitateur: ${config.isMainnet ? "CDP (mainnet)" : config.testnetFacilitatorUrl}`
@@ -95,4 +149,5 @@ app.listen(config.port, () => {
     const tag = ep.price == null ? "gratuit" : ep.price;
     console.log(`  ${ep.method} ${ep.path} [${tag}] — ${ep.description}`);
   }
+  console.log(`  GET /.well-known/x402.json [gratuit] — decouverte pour agents.`);
 });
