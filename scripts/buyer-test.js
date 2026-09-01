@@ -1,13 +1,20 @@
 // scripts/buyer-test.js — client acheteur de test.
-// Appelle /api/defi/tvl sur une cible (TARGET_URL) : recoit le 402, paie avec
-// BUYER_PRIVATE_KEY via le SDK x402 (@x402/fetch), relance la requete et
-// affiche la reponse + le hash de la transaction de paiement.
+// Appelle un endpoint payant sur une cible (TARGET_URL) : recoit le 402,
+// paie avec BUYER_PRIVATE_KEY via le SDK x402 (@x402/fetch), rejoue la
+// requete et affiche la reponse + le recu de paiement.
 //
-// Cible : variable d'environnement TARGET_URL, ou 1er argument CLI, sinon
-// http://localhost:4021 par defaut.
-// Usage: npm run buyer-test               (serveur local: npm start)
-//        npm run buyer-test:prod          (serveur Render)
-//        TARGET_URL=https://... node scripts/buyer-test.js
+// Cible    : TARGET_URL (env) ou 1er argument CLI, sinon http://localhost:4021.
+// Endpoint : ENDPOINT_PATH (env), avec query string incluse (defaut:
+//            /api/defi/tvl?protocol=aave, pour ne pas casser les scripts
+//            npm existants).
+// Methode  : METHOD (env), defaut GET.
+// Corps    : BODY (env, chaine JSON), envoye tel quel pour POST/PUT/PATCH.
+//
+// Usage: npm run buyer-test                                    (defi/tvl, local)
+//        npm run buyer-test:prod                                (defi/tvl, Render)
+//        ENDPOINT_PATH=/api/defi/price?coins=bitcoin npm run buyer-test
+//        ENDPOINT_PATH=/api/ai/summarize METHOD=POST \
+//          BODY='{"text":"...","max_sentences":1}' npm run buyer-test
 //        node scripts/buyer-test.js https://...
 import { wrapFetchWithPaymentFromConfig, decodePaymentResponseHeader } from "@x402/fetch";
 import { ExactEvmScheme } from "@x402/evm/exact/client";
@@ -62,11 +69,29 @@ const fetchWithPayment = wrapFetchWithPaymentFromConfig(fetch, {
   ],
 });
 
-const url = `${targetUrl}/api/defi/tvl?protocol=aave`;
-console.log(`\nRequete  : GET ${url}\n`);
+const endpointPath = process.env.ENDPOINT_PATH || "/api/defi/tvl?protocol=aave";
+const httpMethod = (process.env.METHOD || "GET").toUpperCase();
+const bodyRaw = process.env.BODY;
+
+const url = `${targetUrl}${endpointPath}`;
+const fetchOptions = { method: httpMethod };
+if (bodyRaw && ["POST", "PUT", "PATCH"].includes(httpMethod)) {
+  try {
+    JSON.parse(bodyRaw); // valide le JSON avant l'appel, message clair sinon
+  } catch (err) {
+    console.error(`BODY n'est pas du JSON valide : ${err.message}`);
+    process.exit(1);
+  }
+  fetchOptions.body = bodyRaw;
+  fetchOptions.headers = { "Content-Type": "application/json" };
+}
+
+console.log(`\nRequete  : ${httpMethod} ${url}`);
+if (fetchOptions.body) console.log(`Corps    : ${fetchOptions.body}`);
+console.log();
 
 try {
-  const response = await fetchWithPayment(url, { method: "GET" });
+  const response = await fetchWithPayment(url, fetchOptions);
 
   if (!response.ok) {
     console.error(`Echec HTTP ${response.status}:`);

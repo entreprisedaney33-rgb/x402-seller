@@ -61,6 +61,9 @@ export default {
   cdpApiKeySecret,
   buyerPrivateKey: process.env.BUYER_PRIVATE_KEY || "",
   anthropicApiKey: process.env.ANTHROPIC_API_KEY || "",
+  // Optionnel : releve le plafond de requetes GitHub (60/h -> 5000/h) pour
+  // GET /api/github/repo. Aucun scope requis (donnees de depots publics).
+  githubToken: process.env.GITHUB_TOKEN || "",
   port,
   // URL publique de CE serveur, sans slash final. Toute ressource annoncee
   // aux agents (Bazaar, .well-known/x402.json) doit etre construite a partir

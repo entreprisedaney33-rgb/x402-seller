@@ -13,6 +13,7 @@ import { createFacilitatorConfig } from "@coinbase/x402";
 import config from "./config.js";
 import { buildDiscoveryDocument } from "./discovery.js";
 import { logPaiementReussi } from "./payment-log.js";
+import { safeHandler } from "./lib/http.js";
 
 // --- 1. Chargement automatique des endpoints -------------------------------
 
@@ -107,6 +108,10 @@ const app = express();
 // par IP et pour un req.protocol/hostname corrects).
 app.set("trust proxy", 1);
 
+// Parse le corps JSON des requetes POST (endpoints /api/ai/*). N'affecte
+// pas les routes GET (pas de corps a parser).
+app.use(express.json({ limit: "1mb" }));
+
 // Rate-limit simple par IP sur les routes payantes (/api/*) : 60 req/min.
 const apiLimiter = rateLimit({
   windowMs: 60_000,
@@ -121,8 +126,11 @@ if (Object.keys(paidRoutes).length > 0) {
   app.use(paymentMiddleware(paidRoutes, resourceServer));
 }
 
+// safeHandler enrobe CHAQUE endpoint (existant et nouveau) : garantit
+// qu'aucune erreur non prevue ne remonte en 500 brut (page HTML par defaut
+// d'Express) — toujours un JSON propre. Voir lib/http.js.
 for (const ep of endpoints) {
-  app[ep.method.toLowerCase()](ep.path, ep.handler);
+  app[ep.method.toLowerCase()](ep.path, safeHandler(ep.handler));
 }
 
 // Document de decouverte pour les agents (voir discovery.js pour le detail
