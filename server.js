@@ -15,6 +15,7 @@ import { buildDiscoveryDocument } from "./discovery.js";
 import { buildOpenApiDocument } from "./openapi.js";
 import { logPaiementReussi } from "./payment-log.js";
 import { logSondage } from "./sondage-log.js";
+import { computeDailyStats } from "./lib/stats-daily.js";
 import { safeHandler } from "./lib/http.js";
 
 // --- 1. Chargement automatique des endpoints -------------------------------
@@ -181,6 +182,23 @@ const FAVICON_SVG =
 app.get("/favicon.svg", (req, res) => {
   res.set("Cache-Control", "public, max-age=86400").type("image/svg+xml").send(FAVICON_SVG);
 });
+
+// GET /stats/daily?key=<STATS_KEY> — protected admin/reporting route, NOT
+// loaded from endpoints/ on purpose: it must never be published in
+// .well-known/x402.json or /openapi.json (unlike GET /stats, which is free
+// and anonymized, this one surfaces revenue and payer addresses). 401
+// without the exact key; an empty/unset STATS_KEY always denies (never
+// treated as "no key required").
+app.get(
+  "/stats/daily",
+  safeHandler(async (req, res) => {
+    if (!config.statsKey || req.query.key !== config.statsKey) {
+      res.status(401).json({ error: "Missing or invalid 'key' query parameter." });
+      return;
+    }
+    res.json(await computeDailyStats());
+  })
+);
 
 app.listen(config.port, "0.0.0.0", () => {
   console.log(`Serveur x402 demarre sur http://0.0.0.0:${config.port}`);

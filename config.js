@@ -64,6 +64,10 @@ export default {
   // Optionnel : releve le plafond de requetes GitHub (60/h -> 5000/h) pour
   // GET /api/github/repo. Aucun scope requis (donnees de depots publics).
   githubToken: process.env.GITHUB_TOKEN || "",
+  // Cle secrete protegeant GET /stats/daily (revenu detaille, payers) —
+  // route admin, jamais publiee dans .well-known/x402.json ni openapi.json.
+  // Vide => route toujours refusee (401), jamais "cle vide == acces libre".
+  statsKey: process.env.STATS_KEY || "",
   port,
   // URL publique de CE serveur, sans slash final. Toute ressource annoncee
   // aux agents (Bazaar, .well-known/x402.json) doit etre construite a partir
