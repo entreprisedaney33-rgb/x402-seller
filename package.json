@@ -13,7 +13,8 @@
     "buyer-test": "node scripts/buyer-test.js",
     "buyer-test:prod": "TARGET_URL=https://x402-seller-0ay3.onrender.com node scripts/buyer-test.js",
     "cle": "node scripts/importer-cle-cdp.js",
-    "bazaar": "node scripts/check-bazaar.js"
+    "bazaar": "node scripts/check-bazaar.js",
+    "seed": "node scripts/seed-bazaar.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.123.0",
