@@ -13,5 +13,9 @@ export const description =
   "successful payments. No sensitive data (no IPs, addresses, or transaction hashes). Free, no parameters.";
 
 export async function handler(req, res) {
+  // CORS open for GET /stats ONLY: free/anonymized data, meant to be pulled
+  // directly from a browser (e.g. the Jarvis PWA's "Crypto x402" panel).
+  // Scoped to this single route on purpose — never a blanket app-wide cors().
+  res.set("Access-Control-Allow-Origin", "*");
   res.json(await computeStats());
 }
