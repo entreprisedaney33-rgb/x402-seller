@@ -130,7 +130,7 @@ Payment infra is useless if nothing finds your endpoints. Five discovery surface
 
 ## Being honest about this
 
-The x402 ecosystem is small right now. Traffic on this server is basically me testing it, plus whatever probes discovery crawlers send. This post is a "here's how the plumbing works and here's the code," not a revenue story — I have no evidence yet that agents are out there autonomously discovering and paying for API calls at any real scale. If that changes, that's a different post.
+The x402 ecosystem is still small. For the first day, traffic on this server was basically me testing it, plus whatever probes discovery crawlers send automatically — a `402`, no payment attached. That changed on September 2, 2026, less than 24 hours after this server went live: an unknown buyer — not my own wallet, not a crawler — paid $0.005 for `/api/defi/yields`, settled on Base (tx `0x3fb4e258269a1e3334630506f675a6126b7bec390ecea297cd0d8a275a366f04`, https://basescan.org/tx/0x3fb4e258269a1e3334630506f675a6126b7bec390ecea297cd0d8a275a366f04). The rest of that first night was still mostly unpaid — roughly 2,400 `402`s against that one real payment. It's a single data point, not a trend, but it's the first time the full loop — discover, get priced, pay, get the real response — happened with someone I don't know on the other end.
 
 ## Try it yourself
 
