@@ -198,10 +198,14 @@ scripts/
   generate-buyer-wallet.js # generates BUYER_PRIVATE_KEY (viem) + prints the address
   buyer-test.js            # buyer client: receives the 402, pays, prints the response (path/method/body configurable)
   check-bazaar.js          # npm run bazaar — queries the CDP facilitator's Bazaar discovery
+  seed-bazaar.js           # npm run seed [-- --only=...] — pays real endpoints so the Bazaar indexes them
+  seed-hebdo.js            # npm run seed-hebdo — full-mode weekly seed with a balance guard + retry (see below)
+  lib/seed-core.js         # shared dynamic-discovery + payment loop behind seed-bazaar.js and seed-hebdo.js
   importer-cle-cdp.js      # npm run cle — imports the CDP key into .env without ever printing it
 render.yaml                 # Render deployment blueprint (Node web service)
 logs/paiements.jsonl        # successful-payment log (gitignored, created on the first payment)
 logs/sondages.jsonl         # 402-response log (gitignored, created on the first probe)
+logs/seeds.jsonl            # weekly seed run summaries (gitignored, LOCAL only — see below)
 .env / .env.example        # configuration (.env is never committed)
 ```
 
@@ -323,6 +327,38 @@ only):
 
 ```bash
 npm run bazaar
+```
+
+### Weekly automated seed (staying indexed in the Bazaar)
+
+The CDP facilitator's Bazaar de-lists endpoints that haven't seen a real
+settled payment recently — real agent traffic alone can't be relied on to
+keep every endpoint fresh. A dedicated **Render Cron Job** (`x402-seed-hebdo`,
+created via the Render API, not in `render.yaml` — a separate resource on
+purpose, so it can never touch the web service's deploys) runs
+`node scripts/seed-hebdo.js` every Monday: full mode (every endpoint
+discovered from the live `/.well-known/x402.json`, not a fixed list), one
+retry per endpoint on failure, 3s pause between calls. Before spending
+anything it reads the buyer wallet's real USDC balance on Base mainnet and
+refuses to run if it's under $0.50 — recharge the wallet and it resumes on
+its own next week, no code change needed.
+
+`scripts/lib/seed-core.js` holds the shared discovery+payment logic used by
+both this script and `scripts/seed-bazaar.js` (the on-demand/`--only`
+variant) — one `EXAMPLES` table, never two lists that can drift apart.
+`seed-hebdo.js` deliberately does **not** import `config.js`: it only ever
+needs `BUYER_PRIVATE_KEY` (read from `.env` locally via `dotenv`, or from a
+real Render env var on the cron job) and `TARGET_URL` — none of the
+seller-side fields (`PAY_TO_ADDRESS`, CDP keys), which stay out of the cron
+job's environment entirely.
+
+Each run appends one JSON summary line to `logs/seeds.jsonl` (gitignored,
+**local disk only** — Render cron jobs have no persistent disk, so that
+write silently no-ops there; the real record of a Render run is its own
+logs in the Render dashboard). Run it yourself anytime:
+
+```bash
+npm run seed-hebdo
 ```
 
 ## Rate limiting and logging
