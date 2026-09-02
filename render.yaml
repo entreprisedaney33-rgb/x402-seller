@@ -36,6 +36,10 @@ services:
         sync: false
       - key: STATS_KEY
         sync: false
+      - key: TAVILY_API_KEY
+        sync: false
+      - key: SERPER_API_KEY
+        sync: false
       # Fixe (pas sync:false) : lie directement au mountPath du disque
       # declare ci-dessus, pas une valeur secrete a saisir par environnement.
       - key: DATA_DIR
