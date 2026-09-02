@@ -43,7 +43,8 @@ having to first discover the generic parameterized endpoint.
 > to personal, non-commercial use and prohibit commercial exploitation of
 > the data without prior written agreement (defillama.com/terms, clauses 7
 > and 8.10). These endpoints (plus the 6 `/api/price/*` and `/api/gas/*`
-> ones above, which reuse the same sources) are built on it anyway, on the
+> ones above, and the 4 `/api/defi/yields/*` sub-routes below, all of
+> which reuse the same DefiLlama sources) are built on it anyway, on the
 > explicit and informed decision of this service's operator (compliance
 > risk accepted) — to be revisited if DefiLlama raises the issue, or by
 > moving to their paid Pro API (pro-api.llama.fi) if needed.
@@ -55,7 +56,21 @@ having to first discover the generic parameterized endpoint.
 | `GET /api/defi/tvl-chain` | $0.005 | `curl "$URL/api/defi/tvl-chain?chain=base"` |
 | `GET /api/defi/protocols` | $0.005 | `curl "$URL/api/defi/protocols?limit=20"` |
 | `GET /api/defi/yields` | $0.005 | `curl "$URL/api/defi/yields?chain=base&min_tvl=1000000"` |
+| `GET /api/defi/yields/top` | $0.005 | `curl "$URL/api/defi/yields/top?limit=10&min_tvl=10000000"` |
+| `GET /api/defi/yields/by-token` | $0.005 | `curl "$URL/api/defi/yields/by-token?symbol=USDC&limit=10"` |
+| `GET /api/defi/yields/by-chain` | $0.005 | `curl "$URL/api/defi/yields/by-chain?chain=base&limit=10"` |
+| `GET /api/defi/yields/pool` | $0.005 | `curl "$URL/api/defi/yields/pool?pool=<pool id>"` |
 | `GET /api/defi/stablecoins` | $0.005 | `curl "$URL/api/defi/stablecoins?limit=20"` |
+
+`/api/defi/yields/top`, `/by-token`, `/by-chain`, and `/pool` are dedicated, intent-matching
+routes alongside the generic `/api/defi/yields` — for an agent searching "best yield for
+USDC" or "best yields on Base" rather than discovering the generic parameterized endpoint
+first (same rationale as the dedicated `/api/price/*` and `/api/gas/*` routes above).
+`/pool` returns one pool's detail plus its last 30 recorded APY/TVL data points, via
+DefiLlama's `yields.llama.fi/chart/{pool}` (verified live against the current DefiLlama
+docs before use — see `endpoints/defi-yields-pool.js` for a note on a doc/reality
+mismatch found in the process: the docs list `/chart/{pool}`'s base URL as `api.llama.fi`,
+but only `yields.llama.fi` actually serves it; `api.llama.fi/chart/{pool}` 404s).
 
 ### On-chain data (public RPC reads via `viem`, no third-party API)
 
@@ -153,6 +168,10 @@ endpoints/                 # one file = one endpoint, auto-loaded
   defi-tvl-chain.js           # GET /api/defi/tvl-chain
   defi-protocols.js           # GET /api/defi/protocols
   defi-yields.js               # GET /api/defi/yields
+  defi-yields-top.js           # GET /api/defi/yields/top
+  defi-yields-by-token.js      # GET /api/defi/yields/by-token
+  defi-yields-by-chain.js      # GET /api/defi/yields/by-chain
+  defi-yields-pool.js          # GET /api/defi/yields/pool
   defi-stablecoins.js          # GET /api/defi/stablecoins
   price-eth-usd.js              # GET /api/price/eth-usd
   price-btc-usd.js               # GET /api/price/btc-usd
