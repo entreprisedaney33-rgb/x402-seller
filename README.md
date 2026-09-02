@@ -204,6 +204,21 @@ discipline as `paiements.jsonl`/`sondages.jsonl`), so actual margin (sale price 
 known and fixed; only the cost side needs tracking) can be checked against these estimates
 over time rather than assumed to hold forever.
 
+**⚠️ Operational gotcha found shipping this (2026-09-02): CDP's mainnet facilitator
+silently rejects payments for endpoints with a long `description`.** `/api/web/scrape`'s
+first description (557 chars) failed real mainnet payment 5/5 times — the facilitator's
+`/verify` call returned `"'paymentPayload' is invalid: must match one of [x402V2Pay..."`,
+which surfaces to the buyer as a bare, unhelpful `402` (looks identical to "insufficient
+funds" or "didn't pay at all" — nothing in the response says "description too long").
+Reproduced locally by running this server with `NETWORK=base` against the real CDP
+facilitator (no deploy needed per iteration) and bisecting: every other endpoint's
+shorter description settled fine in the same session (the 334-char `/api/search/web`
+included), and trimming this one to 301 chars fixed it, confirmed with 3/3 real settled
+mainnet transactions. Root cause and exact limit not confirmed (CDP's schema isn't
+public) — the testnet facilitator did **not** reproduce this at 557 chars, so **always
+verify a new/lengthened endpoint description with a real mainnet payment**, not just
+testnet, before trusting it. Rule of thumb: keep `description` well under ~350 chars.
+
 **Failure handling**: `lib/tavily.js` and `lib/serper.js` collapse every upstream failure
 mode — missing API key, network error, any non-2xx response (including an exhausted
 credit balance) — to the same clean `503 {"error":"This endpoint is temporarily
