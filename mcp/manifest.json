@@ -2,7 +2,7 @@
   "manifest_version": "0.3",
   "name": "x402-seller-mcp",
   "display_name": "x402 Seller",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Pay-per-call access to x402-seller's paid API endpoints (crypto prices, DeFi data, on-chain reads, web reading, AI tasks) in USDC on Base — no API key.",
   "long_description": "Turns every paid endpoint of x402-seller (https://x402-seller-0ay3.onrender.com) into an MCP tool, generated at startup from its own x402 discovery document — so the tool list stays correct as endpoints change.\n\nWorks in two modes:\n\n- **No wallet configured**: calling a tool returns an explanation of the 402 payment challenge (price, network, how to pay) instead of the real result.\n- **Wallet configured** (via the Buyer wallet private key setting below): calls are paid automatically over x402 and return the real result plus the settlement receipt (payer address, transaction hash).\n\nOnly ever configure a throwaway wallet funded with a small amount of USDC on Base — never a wallet holding significant funds.",
   "author": {

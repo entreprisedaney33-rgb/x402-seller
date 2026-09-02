@@ -1,6 +1,6 @@
 {
   "name": "x402-seller-mcp",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "mcpName": "io.github.entreprisedaney33-rgb/x402-seller-mcp",
   "description": "MCP server exposing x402-seller's paid API endpoints (crypto prices, DeFi data, web reading, AI tasks) as tools for AI agents — pay-per-call in USDC over x402, no API key.",
   "type": "module",
@@ -12,6 +12,7 @@
     "server.js",
     "lib",
     "manifest.json",
+    "tools-snapshot.json",
     "README.md"
   ],
   "engines": {
@@ -46,6 +47,8 @@
     "@modelcontextprotocol/client": "^2.0.0"
   },
   "scripts": {
-    "test": "node test/manual-test.mjs"
+    "test": "node test/manual-test.mjs",
+    "snapshot": "node scripts/generate-snapshot.js",
+    "prepublishOnly": "npm run snapshot"
   }
 }

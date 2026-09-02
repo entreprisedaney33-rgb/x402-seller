@@ -1,0 +1,3057 @@
+{
+  "x402Version": 2,
+  "kind": "resource-server",
+  "name": "cryptomonnaie",
+  "description": "Pay-per-call API server over the x402 protocol (USDC payments on Base), built for AI agents",
+  "resources": [
+    {
+      "url": "https://x402-seller-0ay3.onrender.com/api/ai/classify",
+      "method": "POST",
+      "description": "Text classification (sentiment analysis, topic tagging, intent detection, moderation labels...) into one of your own labels, with a confidence score, via Claude Haiku 4.5. JSON body: {text: string (max 8000 chars), labels: string[] (2 to 20 labels)}.",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "price": "$0.01",
+          "payTo": "0x5c3DB195a38f39074d8c891741A82f6D8f2A16Cc"
+        }
+      ],
+      "extensions": {
+        "bazaar": {
+          "info": {
+            "input": {
+              "type": "http",
+              "method": "POST",
+              "bodyType": "json",
+              "body": {
+                "text": "The product arrived broken and support never replied.",
+                "labels": [
+                  "positive",
+                  "negative",
+                  "neutral"
+                ]
+              }
+            },
+            "output": {
+              "type": "json",
+              "example": {
+                "label": "negative",
+                "confidence": 0.94
+              }
+            }
+          },
+          "schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "http"
+                  },
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "POST",
+                      "PUT",
+                      "PATCH"
+                    ]
+                  },
+                  "bodyType": {
+                    "type": "string",
+                    "enum": [
+                      "json",
+                      "form-data",
+                      "text"
+                    ]
+                  },
+                  "body": {
+                    "properties": {
+                      "text": {
+                        "type": "string",
+                        "description": "Text to classify (max 8000 chars)."
+                      },
+                      "labels": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "List of possible labels (2 to 20)."
+                      }
+                    },
+                    "required": [
+                      "text",
+                      "labels"
+                    ]
+                  }
+                },
+                "required": [
+                  "type",
+                  "method",
+                  "bodyType",
+                  "body"
+                ],
+                "additionalProperties": false
+              },
+              "output": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "example": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            },
+            "required": [
+              "input"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "url": "https://x402-seller-0ay3.onrender.com/api/ai/extract",
+      "method": "POST",
+      "description": "Extract JSON from text — pull structured fields (invoice data, contact info, product specs, any custom schema) out of unstructured text, via Claude Haiku 4.5. JSON body: {text: string (max 8000 chars), schema: object (JSON Schema describing the fields to extract)}.",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "price": "$0.02",
+          "payTo": "0x5c3DB195a38f39074d8c891741A82f6D8f2A16Cc"
+        }
+      ],
+      "extensions": {
+        "bazaar": {
+          "info": {
+            "input": {
+              "type": "http",
+              "method": "POST",
+              "bodyType": "json",
+              "body": {
+                "text": "Invoice #4521, billed to Jane Doe, total $340.00, due 2026-09-15.",
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "invoice_number": {
+                      "type": "string"
+                    },
+                    "customer": {
+                      "type": "string"
+                    },
+                    "total": {
+                      "type": "number"
+                    },
+                    "due_date": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "output": {
+              "type": "json",
+              "example": {
+                "data": {
+                  "invoice_number": "4521",
+                  "customer": "Jane Doe",
+                  "total": 340,
+                  "due_date": "2026-09-15"
+                }
+              }
+            }
+          },
+          "schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "http"
+                  },
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "POST",
+                      "PUT",
+                      "PATCH"
+                    ]
+                  },
+                  "bodyType": {
+                    "type": "string",
+                    "enum": [
+                      "json",
+                      "form-data",
+                      "text"
+                    ]
+                  },
+                  "body": {
+                    "properties": {
+                      "text": {
+                        "type": "string",
+                        "description": "Source text (max 8000 chars)."
+                      },
+                      "schema": {
+                        "type": "object",
+                        "description": "JSON Schema describing the fields to extract."
+                      }
+                    },
+                    "required": [
+                      "text",
+                      "schema"
+                    ]
+                  }
+                },
+                "required": [
+                  "type",
+                  "method",
+                  "bodyType",
+                  "body"
+                ],
+                "additionalProperties": false
+              },
+              "output": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "example": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            },
+            "required": [
+              "input"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "url": "https://x402-seller-0ay3.onrender.com/api/ai/summarize",
+      "method": "POST",
+      "description": "Summarize text (article, transcript, report) into a given number of sentences, via Claude Haiku 4.5. Preserves the source text's language. JSON body: {text: string (max 8000 chars), max_sentences?: integer 1-10 (default 3)}.",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "price": "$0.01",
+          "payTo": "0x5c3DB195a38f39074d8c891741A82f6D8f2A16Cc"
+        }
+      ],
+      "extensions": {
+        "bazaar": {
+          "info": {
+            "input": {
+              "type": "http",
+              "method": "POST",
+              "bodyType": "json",
+              "body": {
+                "text": "Long article text...",
+                "max_sentences": 3
+              }
+            },
+            "output": {
+              "type": "json",
+              "example": {
+                "summary": "Concise summary here.",
+                "sentence_limit": 3
+              }
+            }
+          },
+          "schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "http"
+                  },
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "POST",
+                      "PUT",
+                      "PATCH"
+                    ]
+                  },
+                  "bodyType": {
+                    "type": "string",
+                    "enum": [
+                      "json",
+                      "form-data",
+                      "text"
+                    ]
+                  },
+                  "body": {
+                    "properties": {
+                      "text": {
+                        "type": "string",
+                        "description": "Text to summarize (max 8000 chars)."
+                      },
+                      "max_sentences": {
+                        "type": "integer",
+                        "description": "Maximum number of sentences in the summary (1-10, default 3)."
+                      }
+                    },
+                    "required": [
+                      "text"
+                    ]
+                  }
+                },
+                "required": [
+                  "type",
+                  "method",
+                  "bodyType",
+                  "body"
+                ],
+                "additionalProperties": false
+              },
+              "output": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "example": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            },
+            "required": [
+              "input"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "url": "https://x402-seller-0ay3.onrender.com/api/ai/translate",
+      "method": "POST",
+      "description": "Translate text into any target language, via Claude Haiku 4.5. JSON body: {text: string (max 8000 chars), target_lang: string (e.g. French, es, Japanese)}.",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "price": "$0.01",
+          "payTo": "0x5c3DB195a38f39074d8c891741A82f6D8f2A16Cc"
+        }
+      ],
+      "extensions": {
+        "bazaar": {
+          "info": {
+            "input": {
+              "type": "http",
+              "method": "POST",
+              "bodyType": "json",
+              "body": {
+                "text": "Where is the nearest train station?",
+                "target_lang": "French"
+              }
+            },
+            "output": {
+              "type": "json",
+              "example": {
+                "translated_text": "Où est la gare la plus proche ?",
+                "target_lang": "French"
+              }
+            }
+          },
+          "schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "http"
+                  },
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "POST",
+                      "PUT",
+                      "PATCH"
+                    ]
+                  },
+                  "bodyType": {
+                    "type": "string",
+                    "enum": [
+                      "json",
+                      "form-data",
+                      "text"
+                    ]
+                  },
+                  "body": {
+                    "properties": {
+                      "text": {
+                        "type": "string",
+                        "description": "Text to translate (max 8000 chars)."
+                      },
+                      "target_lang": {
+                        "type": "string",
+                        "description": "Target language (name or code, e.g. French, es, Japanese)."
+                      }
+                    },
+                    "required": [
+                      "text",
+                      "target_lang"
+                    ]
+                  }
+                },
+                "required": [
+                  "type",
+                  "method",
+                  "bodyType",
+                  "body"
+                ],
+                "additionalProperties": false
+              },
+              "output": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "example": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            },
+            "required": [
+              "input"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "url": "https://x402-seller-0ay3.onrender.com/api/chain/block",
+      "method": "GET",
+      "description": "Latest known block (number, timestamp, hash) of an EVM blockchain, read live via a public RPC endpoint (viem) — no API key, no aggregator. Parameter: ?chain=<base|ethereum>.",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "price": "$0.005",
+          "payTo": "0x5c3DB195a38f39074d8c891741A82f6D8f2A16Cc"
+        }
+      ],
+      "extensions": {
+        "bazaar": {
+          "info": {
+            "input": {
+              "type": "http",
+              "queryParams": {
+                "chain": "base"
+              }
+            },
+            "output": {
+              "type": "json",
+              "example": {
+                "chain": "base",
+                "block_number": 21500000,
+                "block_hash": "0xabc...",
+                "timestamp": "2026-09-01T12:00:00.000Z",
+                "fetched_at": "2026-09-01T12:00:05.000Z"
+              }
+            }
+          },
+          "schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "http"
+                  },
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "GET",
+                      "HEAD",
+                      "DELETE"
+                    ]
+                  },
+                  "queryParams": {
+                    "type": "object",
+                    "properties": {
+                      "chain": {
+                        "type": "string",
+                        "enum": [
+                          "base",
+                          "ethereum"
+                        ],
+                        "description": "EVM chain to query."
+                      }
+                    },
+                    "required": [
+                      "chain"
+                    ]
+                  }
+                },
+                "required": [
+                  "type",
+                  "method"
+                ],
+                "additionalProperties": false
+              },
+              "output": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "example": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            },
+            "required": [
+              "input"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "url": "https://x402-seller-0ay3.onrender.com/api/chain/gas",
+      "method": "GET",
+      "description": "Current gas price on an EVM blockchain, read live via a public RPC endpoint (viem) — no API key, no aggregator. Also available as dedicated routes: GET /api/gas/base, GET /api/gas/ethereum. Parameter: ?chain=<base|ethereum>.",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "price": "$0.005",
+          "payTo": "0x5c3DB195a38f39074d8c891741A82f6D8f2A16Cc"
+        }
+      ],
+      "extensions": {
+        "bazaar": {
+          "info": {
+            "input": {
+              "type": "http",
+              "queryParams": {
+                "chain": "base"
+              }
+            },
+            "output": {
+              "type": "json",
+              "example": {
+                "chain": "base",
+                "gas_price_wei": "6000000",
+                "gas_price_gwei": 0.006,
+                "fetched_at": "2026-09-01T12:00:00.000Z"
+              }
+            }
+          },
+          "schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "http"
+                  },
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "GET",
+                      "HEAD",
+                      "DELETE"
+                    ]
+                  },
+                  "queryParams": {
+                    "type": "object",
+                    "properties": {
+                      "chain": {
+                        "type": "string",
+                        "enum": [
+                          "base",
+                          "ethereum"
+                        ],
+                        "description": "EVM chain to query."
+                      }
+                    },
+                    "required": [
+                      "chain"
+                    ]
+                  }
+                },
+                "required": [
+                  "type",
+                  "method"
+                ],
+                "additionalProperties": false
+              },
+              "output": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "example": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            },
+            "required": [
+              "input"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "url": "https://x402-seller-0ay3.onrender.com/api/defi/price",
+      "method": "GET",
+      "description": "Current USD price of one or more cryptocurrencies (ETH price, BTC price, any token by symbol or contract address), source DefiLlama. Parameter: ?coins=ethereum,bitcoin (comma-separated CoinGecko IDs, or 'chain:address' for a specific token, e.g. ethereum:0xdac17f958d2ee523a2206206994597c13d831ec7).",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "price": "$0.005",
+          "payTo": "0x5c3DB195a38f39074d8c891741A82f6D8f2A16Cc"
+        }
+      ],
+      "extensions": {
+        "bazaar": {
+          "info": {
+            "input": {
+              "type": "http",
+              "queryParams": {
+                "coins": "ethereum,bitcoin"
+              }
+            },
+            "output": {
+              "type": "json",
+              "example": {
+                "prices": {
+                  "ethereum": {
+                    "price": 2400.5,
+                    "symbol": "ETH",
+                    "confidence": 0.99
+                  },
+                  "bitcoin": {
+                    "price": 65000.12,
+                    "symbol": "BTC",
+                    "confidence": 0.99
+                  }
+                },
+                "currency": "USD",
+                "source": "https://coins.llama.fi",
+                "fetched_at": "2026-09-01T12:00:00.000Z"
+              }
+            }
+          },
+          "schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "http"
+                  },
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "GET",
+                      "HEAD",
+                      "DELETE"
+                    ]
+                  },
+                  "queryParams": {
+                    "type": "object",
+                    "properties": {
+                      "coins": {
+                        "type": "string",
+                        "description": "Comma-separated list of identifiers (e.g. ethereum,bitcoin or base:0x...)."
+                      }
+                    },
+                    "required": [
+                      "coins"
+                    ]
+                  }
+                },
+                "required": [
+                  "type",
+                  "method"
+                ],
+                "additionalProperties": false
+              },
+              "output": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "example": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            },
+            "required": [
+              "input"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "url": "https://x402-seller-0ay3.onrender.com/api/defi/protocols",
+      "method": "GET",
+      "description": "Top DeFi protocols ranked by TVL (total value locked), highest first, source DefiLlama. Optional parameter: ?limit=<n> (1 to 100, default 20).",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "price": "$0.005",
+          "payTo": "0x5c3DB195a38f39074d8c891741A82f6D8f2A16Cc"
+        }
+      ],
+      "extensions": {
+        "bazaar": {
+          "info": {
+            "input": {
+              "type": "http",
+              "queryParams": {
+                "limit": 20
+              }
+            },
+            "output": {
+              "type": "json",
+              "example": {
+                "protocols": [
+                  {
+                    "name": "Binance CEX",
+                    "symbol": "BNB",
+                    "category": "CEX",
+                    "chain": "Multi-Chain",
+                    "tvl_usd": 120000000000
+                  }
+                ],
+                "count": 20,
+                "source": "https://api.llama.fi/protocols",
+                "fetched_at": "2026-09-01T12:00:00.000Z"
+              }
+            }
+          },
+          "schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "http"
+                  },
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "GET",
+                      "HEAD",
+                      "DELETE"
+                    ]
+                  },
+                  "queryParams": {
+                    "type": "object",
+                    "properties": {
+                      "limit": {
+                        "type": "integer",
+                        "description": "Number of protocols to return (1-100, default 20)."
+                      }
+                    },
+                    "required": []
+                  }
+                },
+                "required": [
+                  "type",
+                  "method"
+                ],
+                "additionalProperties": false
+              },
+              "output": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "example": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            },
+            "required": [
+              "input"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "url": "https://x402-seller-0ay3.onrender.com/api/defi/stablecoins",
+      "method": "GET",
+      "description": "Circulating market cap of the top stablecoins (USDT, USDC, DAI...), highest first, source DefiLlama. Optional parameter: ?limit=<n> (1-100, default 20).",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "price": "$0.005",
+          "payTo": "0x5c3DB195a38f39074d8c891741A82f6D8f2A16Cc"
+        }
+      ],
+      "extensions": {
+        "bazaar": {
+          "info": {
+            "input": {
+              "type": "http",
+              "queryParams": {}
+            },
+            "output": {
+              "type": "json",
+              "example": {
+                "stablecoins": [
+                  {
+                    "name": "Tether",
+                    "symbol": "USDT",
+                    "peg": "peggedUSD",
+                    "mechanism": "fiat-backed",
+                    "circulating_usd": 183000000000
+                  }
+                ],
+                "count": 20,
+                "source": "https://stablecoins.llama.fi/stablecoins",
+                "fetched_at": "2026-09-01T12:00:00.000Z"
+              }
+            }
+          },
+          "schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "http"
+                  },
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "GET",
+                      "HEAD",
+                      "DELETE"
+                    ]
+                  },
+                  "queryParams": {
+                    "type": "object",
+                    "properties": {
+                      "limit": {
+                        "type": "integer",
+                        "description": "Number of stablecoins to return (1-100, default 20)."
+                      }
+                    },
+                    "required": []
+                  }
+                },
+                "required": [
+                  "type",
+                  "method"
+                ],
+                "additionalProperties": false
+              },
+              "output": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "example": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            },
+            "required": [
+              "input"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "url": "https://x402-seller-0ay3.onrender.com/api/defi/tvl-chain",
+      "method": "GET",
+      "description": "Current TVL (total value locked) of an entire blockchain (all protocols combined) — chain-wide TVL, source DefiLlama. Parameter: ?chain=<slug> (e.g. base, ethereum, arbitrum, solana).",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "price": "$0.005",
+          "payTo": "0x5c3DB195a38f39074d8c891741A82f6D8f2A16Cc"
+        }
+      ],
+      "extensions": {
+        "bazaar": {
+          "info": {
+            "input": {
+              "type": "http",
+              "queryParams": {
+                "chain": "base"
+              }
+            },
+            "output": {
+              "type": "json",
+              "example": {
+                "chain": "base",
+                "tvl_usd": 5500000000,
+                "as_of": "2026-09-01T00:00:00.000Z",
+                "source": "https://api.llama.fi/v2/historicalChainTvl/base",
+                "fetched_at": "2026-09-01T12:00:00.000Z"
+              }
+            }
+          },
+          "schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "http"
+                  },
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "GET",
+                      "HEAD",
+                      "DELETE"
+                    ]
+                  },
+                  "queryParams": {
+                    "type": "object",
+                    "properties": {
+                      "chain": {
+                        "type": "string",
+                        "description": "DefiLlama chain slug (e.g. base, ethereum, arbitrum)."
+                      }
+                    },
+                    "required": [
+                      "chain"
+                    ]
+                  }
+                },
+                "required": [
+                  "type",
+                  "method"
+                ],
+                "additionalProperties": false
+              },
+              "output": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "example": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            },
+            "required": [
+              "input"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "url": "https://x402-seller-0ay3.onrender.com/api/defi/tvl",
+      "method": "GET",
+      "description": "Current TVL (total value locked) of a specific DeFi protocol, source DefiLlama. Parameter: ?protocol=<slug> (default: aave).",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "price": "$0.005",
+          "payTo": "0x5c3DB195a38f39074d8c891741A82f6D8f2A16Cc"
+        }
+      ],
+      "extensions": {
+        "bazaar": {
+          "info": {
+            "input": {
+              "type": "http",
+              "queryParams": {
+                "protocol": "aave"
+              }
+            },
+            "output": {
+              "type": "json",
+              "example": {
+                "protocol": "aave",
+                "tvl_usd": 21000000000,
+                "currency": "USD",
+                "source": "https://api.llama.fi/tvl/aave",
+                "fetched_at": "2026-09-01T12:00:00.000Z"
+              }
+            }
+          },
+          "schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "http"
+                  },
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "GET",
+                      "HEAD",
+                      "DELETE"
+                    ]
+                  },
+                  "queryParams": {
+                    "type": "object",
+                    "properties": {
+                      "protocol": {
+                        "type": "string",
+                        "description": "DefiLlama protocol slug (e.g. aave, lido, uniswap)."
+                      }
+                    },
+                    "required": []
+                  }
+                },
+                "required": [
+                  "type",
+                  "method"
+                ],
+                "additionalProperties": false
+              },
+              "output": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "example": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            },
+            "required": [
+              "input"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "url": "https://x402-seller-0ay3.onrender.com/api/defi/yields/by-chain",
+      "method": "GET",
+      "description": "Best DeFi yields (APY) on a given blockchain, across all protocols and tokens, highest first, source DefiLlama — for an agent asking 'where's the best yield on Base/Ethereum/Arbitrum/...?'. Parameter: ?chain=<slug> (e.g. base, required). Optional: ?limit=<n> (1-100, default 10).",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "price": "$0.005",
+          "payTo": "0x5c3DB195a38f39074d8c891741A82f6D8f2A16Cc"
+        }
+      ],
+      "extensions": {
+        "bazaar": {
+          "info": {
+            "input": {
+              "type": "http",
+              "queryParams": {
+                "chain": "base",
+                "limit": 10
+              }
+            },
+            "output": {
+              "type": "json",
+              "example": {
+                "chain": "base",
+                "pools": [
+                  {
+                    "chain": "Base",
+                    "project": "aave-v3",
+                    "symbol": "USDC",
+                    "tvlUsd": 85000000,
+                    "apy": 4.2
+                  }
+                ],
+                "count": 10,
+                "source": "https://yields.llama.fi/pools",
+                "fetched_at": "2026-09-01T12:00:00.000Z"
+              }
+            }
+          },
+          "schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "http"
+                  },
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "GET",
+                      "HEAD",
+                      "DELETE"
+                    ]
+                  },
+                  "queryParams": {
+                    "type": "object",
+                    "properties": {
+                      "chain": {
+                        "type": "string",
+                        "description": "DefiLlama chain slug/name (e.g. base, ethereum, arbitrum)."
+                      },
+                      "limit": {
+                        "type": "integer",
+                        "description": "Number of pools to return (1-100, default 10)."
+                      }
+                    },
+                    "required": [
+                      "chain"
+                    ]
+                  }
+                },
+                "required": [
+                  "type",
+                  "method"
+                ],
+                "additionalProperties": false
+              },
+              "output": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "example": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            },
+            "required": [
+              "input"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "url": "https://x402-seller-0ay3.onrender.com/api/defi/yields/by-token",
+      "method": "GET",
+      "description": "Best DeFi yields (APY) for a given token symbol, across all chains and protocols, highest first, source DefiLlama — for an agent asking 'where's the best yield for my USDC/ETH/...?'. Parameter: ?symbol=<token symbol> (e.g. USDC, required). Optional: ?limit=<n> (1-100, default 10).",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "price": "$0.005",
+          "payTo": "0x5c3DB195a38f39074d8c891741A82f6D8f2A16Cc"
+        }
+      ],
+      "extensions": {
+        "bazaar": {
+          "info": {
+            "input": {
+              "type": "http",
+              "queryParams": {
+                "symbol": "USDC",
+                "limit": 10
+              }
+            },
+            "output": {
+              "type": "json",
+              "example": {
+                "symbol": "USDC",
+                "pools": [
+                  {
+                    "chain": "Base",
+                    "project": "aave-v3",
+                    "symbol": "USDC",
+                    "tvlUsd": 85000000,
+                    "apy": 4.2
+                  }
+                ],
+                "count": 10,
+                "source": "https://yields.llama.fi/pools",
+                "fetched_at": "2026-09-01T12:00:00.000Z"
+              }
+            }
+          },
+          "schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "http"
+                  },
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "GET",
+                      "HEAD",
+                      "DELETE"
+                    ]
+                  },
+                  "queryParams": {
+                    "type": "object",
+                    "properties": {
+                      "symbol": {
+                        "type": "string",
+                        "description": "Token symbol to match against pool holdings (e.g. USDC, WETH)."
+                      },
+                      "limit": {
+                        "type": "integer",
+                        "description": "Number of pools to return (1-100, default 10)."
+                      }
+                    },
+                    "required": [
+                      "symbol"
+                    ]
+                  }
+                },
+                "required": [
+                  "type",
+                  "method"
+                ],
+                "additionalProperties": false
+              },
+              "output": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "example": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            },
+            "required": [
+              "input"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "url": "https://x402-seller-0ay3.onrender.com/api/defi/yields/pool",
+      "method": "GET",
+      "description": "Detail and recent APY/TVL history of one specific DeFi pool (identified by its DefiLlama pool id, as returned by /api/defi/yields/top, /by-token, or /by-chain), source DefiLlama. Parameter: ?pool=<pool id> (required, e.g. 747c1d2a-c668-4682-b9f9-296708a3dd90).",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "price": "$0.005",
+          "payTo": "0x5c3DB195a38f39074d8c891741A82f6D8f2A16Cc"
+        }
+      ],
+      "extensions": {
+        "bazaar": {
+          "info": {
+            "input": {
+              "type": "http",
+              "queryParams": {
+                "pool": "747c1d2a-c668-4682-b9f9-296708a3dd90"
+              }
+            },
+            "output": {
+              "type": "json",
+              "example": {
+                "pool": "747c1d2a-c668-4682-b9f9-296708a3dd90",
+                "chain": "Base",
+                "project": "aave-v3",
+                "symbol": "USDC",
+                "tvlUsd": 85000000,
+                "apy": 4.2,
+                "history": [
+                  {
+                    "date": "2026-08-30T00:00:00.000Z",
+                    "tvlUsd": 84000000,
+                    "apy": 4.1
+                  }
+                ],
+                "source": "https://yields.llama.fi/chart/747c1d2a-c668-4682-b9f9-296708a3dd90",
+                "fetched_at": "2026-09-01T12:00:00.000Z"
+              }
+            }
+          },
+          "schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "http"
+                  },
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "GET",
+                      "HEAD",
+                      "DELETE"
+                    ]
+                  },
+                  "queryParams": {
+                    "type": "object",
+                    "properties": {
+                      "pool": {
+                        "type": "string",
+                        "description": "DefiLlama pool id (the 'pool' field from /pools or the sibling yields endpoints)."
+                      }
+                    },
+                    "required": [
+                      "pool"
+                    ]
+                  }
+                },
+                "required": [
+                  "type",
+                  "method"
+                ],
+                "additionalProperties": false
+              },
+              "output": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "example": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            },
+            "required": [
+              "input"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "url": "https://x402-seller-0ay3.onrender.com/api/defi/yields/top",
+      "method": "GET",
+      "description": "Top DeFi yields (APY) across ALL chains and protocols, highest first, source DefiLlama — for an agent hunting the single best yield opportunity right now, with no chain/token filter. Optional parameters: ?limit=<n> (1-100, default 10), ?min_tvl=<usd> (minimum pool TVL, default 0).",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "price": "$0.005",
+          "payTo": "0x5c3DB195a38f39074d8c891741A82f6D8f2A16Cc"
+        }
+      ],
+      "extensions": {
+        "bazaar": {
+          "info": {
+            "input": {
+              "type": "http",
+              "queryParams": {
+                "limit": 10,
+                "min_tvl": 10000000
+              }
+            },
+            "output": {
+              "type": "json",
+              "example": {
+                "pools": [
+                  {
+                    "chain": "Base",
+                    "project": "aave-v3",
+                    "symbol": "USDC",
+                    "tvlUsd": 85000000,
+                    "apy": 4.2
+                  }
+                ],
+                "count": 10,
+                "source": "https://yields.llama.fi/pools",
+                "fetched_at": "2026-09-01T12:00:00.000Z"
+              }
+            }
+          },
+          "schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "http"
+                  },
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "GET",
+                      "HEAD",
+                      "DELETE"
+                    ]
+                  },
+                  "queryParams": {
+                    "type": "object",
+                    "properties": {
+                      "limit": {
+                        "type": "integer",
+                        "description": "Number of pools to return (1-100, default 10)."
+                      },
+                      "min_tvl": {
+                        "type": "number",
+                        "description": "Minimum pool TVL in USD. Optional, default 0."
+                      }
+                    },
+                    "required": []
+                  }
+                },
+                "required": [
+                  "type",
+                  "method"
+                ],
+                "additionalProperties": false
+              },
+              "output": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "example": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            },
+            "required": [
+              "input"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "url": "https://x402-seller-0ay3.onrender.com/api/defi/yields",
+      "method": "GET",
+      "description": "Best DeFi yields (APY) across lending/liquidity pools, highest first, source DefiLlama. Optional parameters: ?chain=<slug> (e.g. base), ?min_tvl=<usd> (minimum pool TVL), ?limit=<n> (default 20, max 100).",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "price": "$0.005",
+          "payTo": "0x5c3DB195a38f39074d8c891741A82f6D8f2A16Cc"
+        }
+      ],
+      "extensions": {
+        "bazaar": {
+          "info": {
+            "input": {
+              "type": "http",
+              "queryParams": {
+                "chain": "base",
+                "min_tvl": 1000000
+              }
+            },
+            "output": {
+              "type": "json",
+              "example": {
+                "pools": [
+                  {
+                    "project": "aave-v3",
+                    "chain": "Base",
+                    "symbol": "USDC",
+                    "apy": 4.2,
+                    "tvl_usd": 85000000,
+                    "stablecoin": true
+                  }
+                ],
+                "count": 20,
+                "source": "https://yields.llama.fi/pools",
+                "fetched_at": "2026-09-01T12:00:00.000Z"
+              }
+            }
+          },
+          "schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "http"
+                  },
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "GET",
+                      "HEAD",
+                      "DELETE"
+                    ]
+                  },
+                  "queryParams": {
+                    "type": "object",
+                    "properties": {
+                      "chain": {
+                        "type": "string",
+                        "description": "Filter by chain name (e.g. base, ethereum). Optional."
+                      },
+                      "min_tvl": {
+                        "type": "number",
+                        "description": "Minimum pool TVL in USD. Optional."
+                      },
+                      "limit": {
+                        "type": "integer",
+                        "description": "Number of pools to return (1-100, default 20)."
+                      }
+                    },
+                    "required": []
+                  }
+                },
+                "required": [
+                  "type",
+                  "method"
+                ],
+                "additionalProperties": false
+              },
+              "output": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "example": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            },
+            "required": [
+              "input"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "url": "https://x402-seller-0ay3.onrender.com/api/dns/lookup",
+      "method": "GET",
+      "description": "DNS records lookup for a domain: A, AAAA, MX, TXT, NS. A record type with no entries returns an empty array, not an error. Parameter: ?domain=<domain name> (e.g. example.com).",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "price": "$0.005",
+          "payTo": "0x5c3DB195a38f39074d8c891741A82f6D8f2A16Cc"
+        }
+      ],
+      "extensions": {
+        "bazaar": {
+          "info": {
+            "input": {
+              "type": "http",
+              "queryParams": {
+                "domain": "example.com"
+              }
+            },
+            "output": {
+              "type": "json",
+              "example": {
+                "domain": "example.com",
+                "A": [
+                  "104.20.23.154"
+                ],
+                "AAAA": [],
+                "MX": [
+                  {
+                    "exchange": "mail.example.com",
+                    "priority": 10
+                  }
+                ],
+                "TXT": [
+                  [
+                    "v=spf1 -all"
+                  ]
+                ],
+                "NS": [
+                  "a.iana-servers.net"
+                ],
+                "fetched_at": "2026-09-01T12:00:00.000Z"
+              }
+            }
+          },
+          "schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "http"
+                  },
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "GET",
+                      "HEAD",
+                      "DELETE"
+                    ]
+                  },
+                  "queryParams": {
+                    "type": "object",
+                    "properties": {
+                      "domain": {
+                        "type": "string",
+                        "description": "Domain name to query (e.g. example.com)."
+                      }
+                    },
+                    "required": [
+                      "domain"
+                    ]
+                  }
+                },
+                "required": [
+                  "type",
+                  "method"
+                ],
+                "additionalProperties": false
+              },
+              "output": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "example": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            },
+            "required": [
+              "input"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "url": "https://x402-seller-0ay3.onrender.com/api/fx/rates",
+      "method": "GET",
+      "description": "Foreign exchange / currency conversion reference rates (European Central Bank) for a base currency, source Frankfurter. Parameter: ?base=<ISO 4217 code> (default EUR, e.g. USD, GBP, JPY).",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "price": "$0.005",
+          "payTo": "0x5c3DB195a38f39074d8c891741A82f6D8f2A16Cc"
+        }
+      ],
+      "extensions": {
+        "bazaar": {
+          "info": {
+            "input": {
+              "type": "http",
+              "queryParams": {
+                "base": "EUR"
+              }
+            },
+            "output": {
+              "type": "json",
+              "example": {
+                "base": "EUR",
+                "date": "2026-09-01",
+                "rates": {
+                  "USD": 1.159,
+                  "GBP": 0.8566
+                },
+                "source": "https://api.frankfurter.app",
+                "fetched_at": "2026-09-01T12:00:00.000Z"
+              }
+            }
+          },
+          "schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "http"
+                  },
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "GET",
+                      "HEAD",
+                      "DELETE"
+                    ]
+                  },
+                  "queryParams": {
+                    "type": "object",
+                    "properties": {
+                      "base": {
+                        "type": "string",
+                        "description": "Base currency ISO 4217 code (e.g. EUR, USD)."
+                      }
+                    },
+                    "required": []
+                  }
+                },
+                "required": [
+                  "type",
+                  "method"
+                ],
+                "additionalProperties": false
+              },
+              "output": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "example": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            },
+            "required": [
+              "input"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "url": "https://x402-seller-0ay3.onrender.com/api/gas/base",
+      "method": "GET",
+      "description": "Current gas price on Base (Ethereum L2), read live via a public RPC endpoint — no API key, no aggregator. No parameters.",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "price": "$0.005",
+          "payTo": "0x5c3DB195a38f39074d8c891741A82f6D8f2A16Cc"
+        }
+      ],
+      "extensions": {
+        "bazaar": {
+          "info": {
+            "input": {
+              "type": "http",
+              "queryParams": {}
+            },
+            "output": {
+              "type": "json",
+              "example": {
+                "chain": "base",
+                "gas_price_wei": "6000000",
+                "gas_price_gwei": 0.006,
+                "fetched_at": "2026-09-01T12:00:00.000Z"
+              }
+            }
+          },
+          "schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "http"
+                  },
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "GET",
+                      "HEAD",
+                      "DELETE"
+                    ]
+                  },
+                  "queryParams": {
+                    "type": "object",
+                    "properties": {},
+                    "required": []
+                  }
+                },
+                "required": [
+                  "type",
+                  "method"
+                ],
+                "additionalProperties": false
+              },
+              "output": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "example": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            },
+            "required": [
+              "input"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "url": "https://x402-seller-0ay3.onrender.com/api/gas/ethereum",
+      "method": "GET",
+      "description": "Current gas price on Ethereum mainnet, read live via a public RPC endpoint — no API key, no aggregator. No parameters.",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "price": "$0.005",
+          "payTo": "0x5c3DB195a38f39074d8c891741A82f6D8f2A16Cc"
+        }
+      ],
+      "extensions": {
+        "bazaar": {
+          "info": {
+            "input": {
+              "type": "http",
+              "queryParams": {}
+            },
+            "output": {
+              "type": "json",
+              "example": {
+                "chain": "ethereum",
+                "gas_price_wei": "8000000000",
+                "gas_price_gwei": 8,
+                "fetched_at": "2026-09-01T12:00:00.000Z"
+              }
+            }
+          },
+          "schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "http"
+                  },
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "GET",
+                      "HEAD",
+                      "DELETE"
+                    ]
+                  },
+                  "queryParams": {
+                    "type": "object",
+                    "properties": {},
+                    "required": []
+                  }
+                },
+                "required": [
+                  "type",
+                  "method"
+                ],
+                "additionalProperties": false
+              },
+              "output": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "example": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            },
+            "required": [
+              "input"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "url": "https://x402-seller-0ay3.onrender.com/api/github/repo",
+      "method": "GET",
+      "description": "Stats for a public GitHub repository: stars, forks, open issues, last push date, main language, license. Parameter: ?full_name=<owner>/<repo> (e.g. expressjs/express).",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "price": "$0.005",
+          "payTo": "0x5c3DB195a38f39074d8c891741A82f6D8f2A16Cc"
+        }
+      ],
+      "extensions": {
+        "bazaar": {
+          "info": {
+            "input": {
+              "type": "http",
+              "queryParams": {
+                "full_name": "expressjs/express"
+              }
+            },
+            "output": {
+              "type": "json",
+              "example": {
+                "full_name": "expressjs/express",
+                "stars": 66000,
+                "forks": 9000,
+                "open_issues": 120,
+                "language": "JavaScript",
+                "license": "MIT",
+                "pushed_at": "2026-08-20T10:00:00Z",
+                "url": "https://github.com/expressjs/express",
+                "fetched_at": "2026-09-01T12:00:00.000Z"
+              }
+            }
+          },
+          "schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "http"
+                  },
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "GET",
+                      "HEAD",
+                      "DELETE"
+                    ]
+                  },
+                  "queryParams": {
+                    "type": "object",
+                    "properties": {
+                      "full_name": {
+                        "type": "string",
+                        "description": "Repository identifier in owner/repo format."
+                      }
+                    },
+                    "required": [
+                      "full_name"
+                    ]
+                  }
+                },
+                "required": [
+                  "type",
+                  "method"
+                ],
+                "additionalProperties": false
+              },
+              "output": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "example": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            },
+            "required": [
+              "input"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "url": "https://x402-seller-0ay3.onrender.com/api/hn/top",
+      "method": "GET",
+      "description": "Current top N Hacker News stories (title, url, score, author, comment count) — tech/startup news ranking. Optional parameter: ?limit=<n> (1-50, default 20).",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "price": "$0.005",
+          "payTo": "0x5c3DB195a38f39074d8c891741A82f6D8f2A16Cc"
+        }
+      ],
+      "extensions": {
+        "bazaar": {
+          "info": {
+            "input": {
+              "type": "http",
+              "queryParams": {
+                "limit": 20
+              }
+            },
+            "output": {
+              "type": "json",
+              "example": {
+                "stories": [
+                  {
+                    "id": 123456,
+                    "title": "Show HN: ...",
+                    "url": "https://example.com",
+                    "score": 250,
+                    "by": "someuser",
+                    "comments": 80
+                  }
+                ],
+                "count": 20,
+                "source": "https://hacker-news.firebaseio.com",
+                "fetched_at": "2026-09-01T12:00:00.000Z"
+              }
+            }
+          },
+          "schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "http"
+                  },
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "GET",
+                      "HEAD",
+                      "DELETE"
+                    ]
+                  },
+                  "queryParams": {
+                    "type": "object",
+                    "properties": {
+                      "limit": {
+                        "type": "integer",
+                        "description": "Number of stories to return (1-50, default 20)."
+                      }
+                    },
+                    "required": []
+                  }
+                },
+                "required": [
+                  "type",
+                  "method"
+                ],
+                "additionalProperties": false
+              },
+              "output": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "example": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            },
+            "required": [
+              "input"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "url": "https://x402-seller-0ay3.onrender.com/api/npm/package",
+      "method": "GET",
+      "description": "npm package downloads, current version, and license — latest version, license, and last week's download count for an npm package. Parameter: ?name=<package> (e.g. express, or @scope/name for a scoped package).",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "price": "$0.005",
+          "payTo": "0x5c3DB195a38f39074d8c891741A82f6D8f2A16Cc"
+        }
+      ],
+      "extensions": {
+        "bazaar": {
+          "info": {
+            "input": {
+              "type": "http",
+              "queryParams": {
+                "name": "express"
+              }
+            },
+            "output": {
+              "type": "json",
+              "example": {
+                "name": "express",
+                "version": "5.2.1",
+                "description": "Fast, unopinionated, minimalist web framework",
+                "license": "MIT",
+                "weekly_downloads": 35000000,
+                "fetched_at": "2026-09-01T12:00:00.000Z"
+              }
+            }
+          },
+          "schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "http"
+                  },
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "GET",
+                      "HEAD",
+                      "DELETE"
+                    ]
+                  },
+                  "queryParams": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "description": "npm package name (e.g. express, @scope/name)."
+                      }
+                    },
+                    "required": [
+                      "name"
+                    ]
+                  }
+                },
+                "required": [
+                  "type",
+                  "method"
+                ],
+                "additionalProperties": false
+              },
+              "output": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "example": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            },
+            "required": [
+              "input"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "url": "https://x402-seller-0ay3.onrender.com/api/price/btc-usd",
+      "method": "GET",
+      "description": "Current BTC (Bitcoin) price in USD, source DefiLlama. No parameters.",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "price": "$0.005",
+          "payTo": "0x5c3DB195a38f39074d8c891741A82f6D8f2A16Cc"
+        }
+      ],
+      "extensions": {
+        "bazaar": {
+          "info": {
+            "input": {
+              "type": "http",
+              "queryParams": {}
+            },
+            "output": {
+              "type": "json",
+              "example": {
+                "symbol": "BTC",
+                "price_usd": 65000.12,
+                "confidence": 0.99,
+                "source": "https://coins.llama.fi",
+                "fetched_at": "2026-09-01T12:00:00.000Z"
+              }
+            }
+          },
+          "schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "http"
+                  },
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "GET",
+                      "HEAD",
+                      "DELETE"
+                    ]
+                  },
+                  "queryParams": {
+                    "type": "object",
+                    "properties": {},
+                    "required": []
+                  }
+                },
+                "required": [
+                  "type",
+                  "method"
+                ],
+                "additionalProperties": false
+              },
+              "output": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "example": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            },
+            "required": [
+              "input"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "url": "https://x402-seller-0ay3.onrender.com/api/price/eth-usd",
+      "method": "GET",
+      "description": "Current ETH (Ethereum) price in USD, source DefiLlama. No parameters.",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "price": "$0.005",
+          "payTo": "0x5c3DB195a38f39074d8c891741A82f6D8f2A16Cc"
+        }
+      ],
+      "extensions": {
+        "bazaar": {
+          "info": {
+            "input": {
+              "type": "http",
+              "queryParams": {}
+            },
+            "output": {
+              "type": "json",
+              "example": {
+                "symbol": "ETH",
+                "price_usd": 2400.5,
+                "confidence": 0.99,
+                "source": "https://coins.llama.fi",
+                "fetched_at": "2026-09-01T12:00:00.000Z"
+              }
+            }
+          },
+          "schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "http"
+                  },
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "GET",
+                      "HEAD",
+                      "DELETE"
+                    ]
+                  },
+                  "queryParams": {
+                    "type": "object",
+                    "properties": {},
+                    "required": []
+                  }
+                },
+                "required": [
+                  "type",
+                  "method"
+                ],
+                "additionalProperties": false
+              },
+              "output": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "example": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            },
+            "required": [
+              "input"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "url": "https://x402-seller-0ay3.onrender.com/api/price/sol-usd",
+      "method": "GET",
+      "description": "Current SOL (Solana) price in USD, source DefiLlama. No parameters.",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "price": "$0.005",
+          "payTo": "0x5c3DB195a38f39074d8c891741A82f6D8f2A16Cc"
+        }
+      ],
+      "extensions": {
+        "bazaar": {
+          "info": {
+            "input": {
+              "type": "http",
+              "queryParams": {}
+            },
+            "output": {
+              "type": "json",
+              "example": {
+                "symbol": "SOL",
+                "price_usd": 145.32,
+                "confidence": 0.99,
+                "source": "https://coins.llama.fi",
+                "fetched_at": "2026-09-01T12:00:00.000Z"
+              }
+            }
+          },
+          "schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "http"
+                  },
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "GET",
+                      "HEAD",
+                      "DELETE"
+                    ]
+                  },
+                  "queryParams": {
+                    "type": "object",
+                    "properties": {},
+                    "required": []
+                  }
+                },
+                "required": [
+                  "type",
+                  "method"
+                ],
+                "additionalProperties": false
+              },
+              "output": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "example": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            },
+            "required": [
+              "input"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "url": "https://x402-seller-0ay3.onrender.com/api/price/usdc-supply",
+      "method": "GET",
+      "description": "Total USDC circulating supply (all chains combined), in USD, source DefiLlama. No parameters.",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "price": "$0.005",
+          "payTo": "0x5c3DB195a38f39074d8c891741A82f6D8f2A16Cc"
+        }
+      ],
+      "extensions": {
+        "bazaar": {
+          "info": {
+            "input": {
+              "type": "http",
+              "queryParams": {}
+            },
+            "output": {
+              "type": "json",
+              "example": {
+                "symbol": "USDC",
+                "circulating_usd": 62000000000,
+                "source": "https://stablecoins.llama.fi/stablecoins",
+                "fetched_at": "2026-09-01T12:00:00.000Z"
+              }
+            }
+          },
+          "schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "http"
+                  },
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "GET",
+                      "HEAD",
+                      "DELETE"
+                    ]
+                  },
+                  "queryParams": {
+                    "type": "object",
+                    "properties": {},
+                    "required": []
+                  }
+                },
+                "required": [
+                  "type",
+                  "method"
+                ],
+                "additionalProperties": false
+              },
+              "output": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "example": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            },
+            "required": [
+              "input"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "url": "https://x402-seller-0ay3.onrender.com/api/rdap/domain",
+      "method": "GET",
+      "description": "RDAP domain lookup — status, registration/expiration dates, registrar, name servers (RDAP is the structured, successor protocol to WHOIS), via rdap.org. Parameter: ?domain=<domain name> (e.g. example.com).",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "price": "$0.005",
+          "payTo": "0x5c3DB195a38f39074d8c891741A82f6D8f2A16Cc"
+        }
+      ],
+      "extensions": {
+        "bazaar": {
+          "info": {
+            "input": {
+              "type": "http",
+              "queryParams": {
+                "domain": "example.com"
+              }
+            },
+            "output": {
+              "type": "json",
+              "example": {
+                "domain": "example.com",
+                "status": [
+                  "client delete prohibited"
+                ],
+                "registrar": "Reserved-Internet Assigned Numbers Authority",
+                "nameservers": [
+                  "a.iana-servers.net"
+                ],
+                "events": {
+                  "registration": "1995-08-14T04:00:00Z",
+                  "expiration": "2027-08-13T04:00:00Z"
+                },
+                "source": "https://rdap.org",
+                "fetched_at": "2026-09-01T12:00:00.000Z"
+              }
+            }
+          },
+          "schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "http"
+                  },
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "GET",
+                      "HEAD",
+                      "DELETE"
+                    ]
+                  },
+                  "queryParams": {
+                    "type": "object",
+                    "properties": {
+                      "domain": {
+                        "type": "string",
+                        "description": "Domain name to query (e.g. example.com)."
+                      }
+                    },
+                    "required": [
+                      "domain"
+                    ]
+                  }
+                },
+                "required": [
+                  "type",
+                  "method"
+                ],
+                "additionalProperties": false
+              },
+              "output": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "example": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            },
+            "required": [
+              "input"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "url": "https://x402-seller-0ay3.onrender.com/api/web/extract",
+      "method": "POST",
+      "description": "Read a public web page and extract structured data from it according to a JSON Schema you provide, via Claude Haiku 4.5 — combines page fetching, readability extraction, and structured extraction in one call. Body: {url: string (http/https), schema: object (JSON Schema describing the fields to extract, page content truncated to 8000 chars)}.",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "price": "$0.02",
+          "payTo": "0x5c3DB195a38f39074d8c891741A82f6D8f2A16Cc"
+        }
+      ],
+      "extensions": {
+        "bazaar": {
+          "info": {
+            "input": {
+              "type": "http",
+              "method": "POST",
+              "bodyType": "json",
+              "body": {
+                "url": "https://en.wikipedia.org/wiki/HTTP_402",
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "title": {
+                      "type": "string"
+                    },
+                    "first_paragraph": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "output": {
+              "type": "json",
+              "example": {
+                "url": "https://en.wikipedia.org/wiki/HTTP_402",
+                "title": "HTTP 402",
+                "data": {
+                  "title": "HTTP 402",
+                  "first_paragraph": "The HTTP 402 Payment Required..."
+                },
+                "fetched_at": "2026-09-01T12:00:00.000Z"
+              }
+            }
+          },
+          "schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "http"
+                  },
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "POST",
+                      "PUT",
+                      "PATCH"
+                    ]
+                  },
+                  "bodyType": {
+                    "type": "string",
+                    "enum": [
+                      "json",
+                      "form-data",
+                      "text"
+                    ]
+                  },
+                  "body": {
+                    "properties": {
+                      "url": {
+                        "type": "string",
+                        "description": "Public http(s) URL of the page to read and extract from."
+                      },
+                      "schema": {
+                        "type": "object",
+                        "description": "JSON Schema describing the fields to extract."
+                      }
+                    },
+                    "required": [
+                      "url",
+                      "schema"
+                    ]
+                  }
+                },
+                "required": [
+                  "type",
+                  "method",
+                  "bodyType",
+                  "body"
+                ],
+                "additionalProperties": false
+              },
+              "output": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "example": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            },
+            "required": [
+              "input"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "url": "https://x402-seller-0ay3.onrender.com/api/web/read",
+      "method": "POST",
+      "description": "Read any public web page and return its main article content as clean Markdown (readability extraction, boilerplate/nav/ads stripped) — no HTML parsing needed on your side. Body: {url: string (http/https, publicly reachable)}.",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "price": "$0.005",
+          "payTo": "0x5c3DB195a38f39074d8c891741A82f6D8f2A16Cc"
+        }
+      ],
+      "extensions": {
+        "bazaar": {
+          "info": {
+            "input": {
+              "type": "http",
+              "method": "POST",
+              "bodyType": "json",
+              "body": {
+                "url": "https://en.wikipedia.org/wiki/HTTP_402"
+              }
+            },
+            "output": {
+              "type": "json",
+              "example": {
+                "title": "HTTP 402",
+                "text_markdown": "# HTTP 402\n\nThe **402 Payment Required**...",
+                "word_count": 480,
+                "fetched_at": "2026-09-01T12:00:00.000Z"
+              }
+            }
+          },
+          "schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "http"
+                  },
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "POST",
+                      "PUT",
+                      "PATCH"
+                    ]
+                  },
+                  "bodyType": {
+                    "type": "string",
+                    "enum": [
+                      "json",
+                      "form-data",
+                      "text"
+                    ]
+                  },
+                  "body": {
+                    "properties": {
+                      "url": {
+                        "type": "string",
+                        "description": "Public http(s) URL of the page to read."
+                      }
+                    },
+                    "required": [
+                      "url"
+                    ]
+                  }
+                },
+                "required": [
+                  "type",
+                  "method",
+                  "bodyType",
+                  "body"
+                ],
+                "additionalProperties": false
+              },
+              "output": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "example": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            },
+            "required": [
+              "input"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "url": "https://x402-seller-0ay3.onrender.com/api/wiki/summary",
+      "method": "GET",
+      "description": "Wikipedia article summary (extract, short description, thumbnail image, canonical link) for a given title — CC BY-SA content, attribution included in every response. Parameters: ?title=<exact article title> (e.g. Bitcoin), ?lang=<language code> (default en).",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "price": "$0.005",
+          "payTo": "0x5c3DB195a38f39074d8c891741A82f6D8f2A16Cc"
+        }
+      ],
+      "extensions": {
+        "bazaar": {
+          "info": {
+            "input": {
+              "type": "http",
+              "queryParams": {
+                "title": "Bitcoin",
+                "lang": "en"
+              }
+            },
+            "output": {
+              "type": "json",
+              "example": {
+                "title": "Bitcoin",
+                "extract": "Bitcoin is the first decentralized cryptocurrency...",
+                "description": "Decentralized digital currency",
+                "thumbnail_url": "https://upload.wikimedia.org/...",
+                "url": "https://en.wikipedia.org/wiki/Bitcoin",
+                "attribution": {
+                  "license": "CC BY-SA 4.0",
+                  "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+                  "source": "Wikipedia contributors"
+                },
+                "fetched_at": "2026-09-01T12:00:00.000Z"
+              }
+            }
+          },
+          "schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "http"
+                  },
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "GET",
+                      "HEAD",
+                      "DELETE"
+                    ]
+                  },
+                  "queryParams": {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string",
+                        "description": "Exact Wikipedia article title (case-sensitive for some words)."
+                      },
+                      "lang": {
+                        "type": "string",
+                        "description": "Wikipedia language code (e.g. en, fr, de). Default: en."
+                      }
+                    },
+                    "required": [
+                      "title"
+                    ]
+                  }
+                },
+                "required": [
+                  "type",
+                  "method"
+                ],
+                "additionalProperties": false
+              },
+              "output": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "example": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            },
+            "required": [
+              "input"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "docs": "https://x402-seller-0ay3.onrender.com",
+  "updated": "2026-09-02T16:10:34.845Z"
+}
