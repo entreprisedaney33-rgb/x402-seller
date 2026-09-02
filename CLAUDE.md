@@ -56,3 +56,19 @@ npm run cle                   # importe la clé CDP depuis CLE_API_CDP.txt vers 
 - **Lire les CGU du fournisseur AVANT de construire un endpoint de revente.** Deux fournisseurs ont déjà été écartés (Exa, Firecrawl) parce que leurs CGU interdisent explicitement la revente commerciale — voir README "Premium reseller" pour la méthode et le raisonnement complets.
 - **Tester sur testnet (`base-sepolia`) d'abord**, puis confirmer avec un vrai paiement mainnet avant de considérer un endpoint fini — le facilitateur testnet ne reproduit pas forcément les mêmes échecs que le facilitateur CDP mainnet (un vrai bug de ce genre a déjà été trouvé et documenté dans `endpoints/web-scrape.js`).
 - **Descriptions d'endpoint honnêtes, jamais une capacité non vérifiée.** Si une capacité n'a pas été testée contre un cas réel, dire ce qui est réellement vérifié plutôt que ce qui est espéré.
+- **Diagnostiquer un run `seed-hebdo`/cron en échec : lire `GET /v1/logs?resource=<id>` (l'API Render n'a pas d'endpoint dédié "liste des runs" — reconstruire l'historique à partir des marqueurs texte `Cron job run started` / `finished successfully` / `Your cronjob failed`, triés par horodatage), pas juste l'alerte reçue — elle peut concerner un run ancien déjà résolu.** Signal utile : des endpoints **sans rapport entre eux qui échouent ensemble, consécutifs dans le tableau de résultats** (jamais dispersés au hasard) = quasi toujours une coupure d'infra (réseau Render transitoire, ou le **serveur CIBLE** `x402-seller` en plein redéploiement — ce plan Render, Starter + disque persistant, désactive les déploiements sans coupure : l'ancienne instance est arrêtée avant que la nouvelle démarre), jamais un bug de code. Vérifier `GET /v1/services/<serveur cible>/deploys` pour une fenêtre de déploiement qui chevauche l'horodatage des échecs avant de chercher plus loin.
+
+## Incidents résolus
+
+### 02/09/2026 — Alerte cron "Exited with status 1"
+Alerte reçue sur `x402-seed-hebdo`. Diagnostic (voir méthode ci-dessus) : l'alerte
+correspondait à un run **antérieur à l'existence de `scripts/seed-hebdo.js` dans le
+commit déployé** (11:58/12:01 UTC, avant que le script soit même poussé) — déjà
+compris, rien à corriger côté cron. En revalidant quand même (le cron avait grossi
+entretemps, 31→34 endpoints avec l'ajout de la gamme premium reseller), 2 échecs
+réels supplémentaires sont apparus, **aucun des deux dû au cron lui-même** : un
+creux réseau transitoire sur l'infra Render (~20s, 5 endpoints sans rapport —
+GitHub/HN/npm/DefiLlama — tombés ensemble puis repartis normalement), puis le
+serveur cible en plein redéploiement pendant le run (une autre session avait
+poussé un commit exactement à ce moment). Validé propre après ré-essai :
+**34/34, $0.235 dépensés, solde restant $3.745 USDC**.
