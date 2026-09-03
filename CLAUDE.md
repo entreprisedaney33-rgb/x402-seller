@@ -22,7 +22,7 @@ Serveur de vente d'API à l'appel via le protocole x402 (paiements USDC sur Base
   | `ANTHROPIC_API_KEY` | Appels Claude pour les endpoints IA (`/api/ai/*`, `/api/web/extract`) |
   | `GITHUB_TOKEN` | Relève le plafond de requêtes GitHub (60/h → 5000/h) pour `/api/github/repo` |
   | `STATS_KEY` | Protège la route privée `GET /stats/daily` (revenu détaillé, payers) |
-  | `TAVILY_API_KEY` | Fournisseur de recherche web + extraction, pour `/api/search/web` et `/api/web/scrape` |
+  | `TAVILY_API_KEY` | Fournisseur de recherche web, pour `/api/search/web` |
   | `SERPER_API_KEY` | Fournisseur de résultats Google structurés, pour `/api/search/serp` |
   | `RENDER_API_KEY` | Gère le service/cron Render par API (déploiements, variables d'environnement) |
   | `SMITHERY_API_KEY` | Publie le serveur MCP (`mcp/`) sur l'annuaire Smithery |
@@ -54,7 +54,7 @@ npm run cle                   # importe la clé CDP depuis CLE_API_CDP.txt vers 
 
 - **Vérifier la doc/version des packages avant de coder** — ne jamais deviner la forme d'une API (`@x402/*`, SDK MCP, etc.), les versions changent vite sur ce projet.
 - **Lire les CGU du fournisseur AVANT de construire un endpoint de revente.** Deux fournisseurs ont déjà été écartés (Exa, Firecrawl) parce que leurs CGU interdisent explicitement la revente commerciale — voir README "Premium reseller" pour la méthode et le raisonnement complets.
-- **Tester sur testnet (`base-sepolia`) d'abord**, puis confirmer avec un vrai paiement mainnet avant de considérer un endpoint fini — le facilitateur testnet ne reproduit pas forcément les mêmes échecs que le facilitateur CDP mainnet (un vrai bug de ce genre a déjà été trouvé et documenté dans `endpoints/web-scrape.js`).
+- **Tester sur testnet (`base-sepolia`) d'abord**, puis confirmer avec un vrai paiement mainnet avant de considérer un endpoint fini — le facilitateur testnet ne reproduit pas forcément les mêmes échecs que le facilitateur CDP mainnet (un vrai bug de ce genre a déjà été trouvé : CDP rejetait silencieusement une description trop longue, voir `docs/RAPPORT-P1-PREMIUM.md` et l'historique git de `endpoints/web-scrape.js`, endpoint depuis retiré).
 - **Descriptions d'endpoint honnêtes, jamais une capacité non vérifiée.** Si une capacité n'a pas été testée contre un cas réel, dire ce qui est réellement vérifié plutôt que ce qui est espéré.
 - **Diagnostiquer un run `seed-hebdo`/cron en échec : lire `GET /v1/logs?resource=<id>` (l'API Render n'a pas d'endpoint dédié "liste des runs" — reconstruire l'historique à partir des marqueurs texte `Cron job run started` / `finished successfully` / `Your cronjob failed`, triés par horodatage), pas juste l'alerte reçue — elle peut concerner un run ancien déjà résolu.** Signal utile : des endpoints **sans rapport entre eux qui échouent ensemble, consécutifs dans le tableau de résultats** (jamais dispersés au hasard) = quasi toujours une coupure d'infra (réseau Render transitoire, ou le **serveur CIBLE** `x402-seller` en plein redéploiement — ce plan Render, Starter + disque persistant, désactive les déploiements sans coupure : l'ancienne instance est arrêtée avant que la nouvelle démarre), jamais un bug de code. Vérifier `GET /v1/services/<serveur cible>/deploys` pour une fenêtre de déploiement qui chevauche l'horodatage des échecs avant de chercher plus loin.
 

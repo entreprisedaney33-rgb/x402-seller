@@ -75,10 +75,13 @@ export default {
   // Optionnel : releve le plafond de requetes GitHub (60/h -> 5000/h) pour
   // GET /api/github/repo. Aucun scope requis (donnees de depots publics).
   githubToken: process.env.GITHUB_TOKEN || "",
-  // Gamme "premium reseller" (POST /api/search/web, /api/search/serp,
-  // /api/web/scrape) — voir README "Premium reseller". Vides par defaut :
-  // chaque endpoint renvoie un 503 propre tant que sa cle n'est pas fournie,
-  // jamais une erreur 500 ni un crash au demarrage.
+  // Gamme "premium reseller" (POST /api/search/web, /api/search/serp) —
+  // voir README "Premium reseller". Vides par defaut : chaque endpoint
+  // renvoie un 503 propre tant que sa cle n'est pas fournie, jamais une
+  // erreur 500 ni un crash au demarrage. (Un 3e endpoint, POST
+  // /api/web/scrape, a existe brievement puis a ete retire le 2026-09-03 —
+  // voir README "Premium reseller" pour pourquoi ; tavilyApiKey reste
+  // necessaire pour /api/search/web.)
   tavilyApiKey: process.env.TAVILY_API_KEY || "",
   serperApiKey: process.env.SERPER_API_KEY || "",
   // Cle secrete protegeant GET /stats/daily (revenu detaille, payers) —

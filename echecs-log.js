@@ -13,8 +13,8 @@
 //     (lib/http.js) — a third-party source (Tavily, DefiLlama, GitHub...)
 //     was slow/down/rate-limited. Since x402 only settles AFTER a
 //     successful (2xx) handler response, this never means a buyer was
-//     charged for a failed request (see endpoints/web-scrape.js) — it's
-//     purely an operational signal, no money involved.
+//     charged for a failed request — it's purely an operational signal,
+//     no money involved.
 //
 // Never logs a private key, a full payment signature/payload, or any
 // field beyond what's explicitly listed in each function below — only

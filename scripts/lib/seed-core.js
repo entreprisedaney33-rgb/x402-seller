@@ -39,13 +39,6 @@ export const EXAMPLES = {
   "/api/defi/stablecoins": { query: "limit=3" },
   "/api/search/web": { body: { query: "latest developments in the x402 protocol", num_results: 3 } },
   "/api/search/serp": { body: { query: "best crypto payment protocols 2026", country: "us" } },
-  // NOT en.wikipedia.org/wiki/HTTP_402 (used elsewhere in this table, fine
-  // for /api/web/read and /api/web/extract) — confirmed 2026-09-02 that
-  // Tavily's Extract API specifically 404s on that exact URL right now
-  // (Wikipedia itself is reachable, HTTP 200 via plain curl — this is a
-  // Tavily-side crawl issue, unrelated to this server's code). x402.org is
-  // simple, stable, and already confirmed working against this endpoint.
-  "/api/web/scrape": { body: { url: "https://x402.org/" } },
   "/api/chain/gas": { query: "chain=base" },
   "/api/chain/block": { query: "chain=base" },
   "/api/gas/base": {},

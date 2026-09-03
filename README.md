@@ -125,12 +125,22 @@ hop), the download is capped at 2 MB within a 10 s budget, and the site's
 |---|---|---|
 | `POST /api/search/web` | $0.01 | `curl -X POST "$URL/api/search/web" -H "Content-Type: application/json" -d '{"query":"latest developments in the x402 protocol","num_results":5}'` |
 | `POST /api/search/serp` | $0.005 | `curl -X POST "$URL/api/search/serp" -H "Content-Type: application/json" -d '{"query":"best crypto payment protocols 2026","country":"us"}'` |
-| `POST /api/web/scrape` | $0.02 | `curl -X POST "$URL/api/web/scrape" -H "Content-Type: application/json" -d '{"url":"https://en.wikipedia.org/wiki/HTTP_402"}'` |
 
 Unlike the rest of this server (free/public sources, or a flat-rate AI call), this
 family resells a paid upstream provider's API per call — so margin, compliance, and
 upstream outages are real, ongoing concerns, tracked deliberately rather than assumed
 away.
+
+**A third endpoint, `POST /api/web/scrape` (Tavily Extract), was built, shipped, then
+retired on 2026-09-03.** It was removed after a real 6-page comparative test (3
+JavaScript-rendered pages, a heavy documentation page, a product page, and an article
+behind a cookie-consent banner — all confirmed `robots.txt`-compliant before testing)
+against this server's own free `/api/web/read`: the in-house extractor matched or beat
+Tavily Extract on 5 of the 6 pages, usually because Tavily returned a full page dump
+(navigation and boilerplate mixed in) where Readability went straight to the actual
+content. Tavily's only reproducible advantage was bypassing a bot-detection block that
+refused this server's own honestly-identified crawler outright — real, but too narrow to
+justify a dedicated $0.02 endpoint. Full test data: `docs/RAPPORT-P1-PREMIUM.md`.
 
 **Compliance basis (verified before writing any code, not assumed).** The brief named
 Exa, Serper, and Firecrawl as candidates. Both Exa and Firecrawl were **rejected**: their
@@ -141,13 +151,13 @@ Firecrawl ToS: "Use the Services for any commercial purposes except as expressly
 authorized by Firecrawl" plus a separate "sell, distribute... based on the Services"
 prohibition). Two replacements were researched and picked instead:
 
-- **Tavily** (`api.tavily.com`) — replaces Exa for `/api/search/web` and provides
-  `/api/web/scrape`. Its ToS (tavily.com/terms) contains an explicit carve-out for exactly
-  this architecture: §3.2 bans reselling/sublicensing the Services *except* "integration
-  of the Services in Customer Applications", and a Customer Application is defined (§1.2)
-  to include serving your own third-party end users — provided (§3.5, Acceptable Use
-  Policy §4) those end users never receive the Tavily API key or call Tavily directly
-  (they only ever talk to this server). That's exactly how both endpoints are built.
+- **Tavily** (`api.tavily.com`) — replaces Exa for `/api/search/web`. Its ToS
+  (tavily.com/terms) contains an explicit carve-out for exactly this architecture: §3.2
+  bans reselling/sublicensing the Services *except* "integration of the Services in
+  Customer Applications", and a Customer Application is defined (§1.2) to include serving
+  your own third-party end users — provided (§3.5, Acceptable Use Policy §4) those end
+  users never receive the Tavily API key or call Tavily directly (they only ever talk to
+  this server). That's exactly how `endpoints/search-web.js` is built.
 - **Serper** (`serper.dev`) — used for `/api/search/serp`. SerpApi was checked as an
   alternative and rejected (subscription-only, no true prepaid credits, and is currently
   the defendant in active litigation brought by Google over its scraping methods).
@@ -158,41 +168,14 @@ prohibition). Two replacements were researched and picked instead:
   merged into one shape) rather than passing it through verbatim, to stay clearly on the
   value-added side of that clause. This is a documented risk decision, not a clean bill of
   health — revisit if Serper ever adds an explicit resale clause either way.
-- **Scraping (`/api/web/scrape`) ended up on Tavily too, not a dedicated scraper.**
-  Firecrawl (forbidden, above), ScrapingBee, and ZenRows were all checked for this slot —
-  all three require an active paying subscription for any real usage (no genuine
-  zero-commitment prepaid credits, failing this project's "no subscription" requirement
-  outright), and ScrapingBee's and ZenRows' own Terms are themselves ambiguous-to-restrictive
-  on resale even if that requirement were waived. Rather than accept a provider that fails
-  on cost model, ToS, or both, `/api/web/scrape` reuses Tavily's Extract endpoint —
-  already cleared above — accepting a lower ceiling on "hard site" coverage in exchange for
-  a provider that's unambiguously fine to resell from.
 
-**Real-world verified, not assumed (2026-09-02, against a live Tavily key, testnet
-payments):** `/api/web/scrape` was tested against real pages before writing its sale
-description — a JS-heavy page (content only renders after client-side script execution),
-a live BBC News article, and Cloudflare-protected sites. JS-rendered content **extracts
-correctly** (real page content came back, not an empty shell). The news article
-**extracts correctly** too, but noisier than this server's own `/api/web/read`
-(Readability-based, so boilerplate-stripped) — Tavily's extraction is a fuller page dump,
-not a focused article reader. Cloudflare needed a second pass: the first target
-(nowsecure.nl, a commonly-cited community test page) failed — but a follow-up check found
-that page no longer reliably presents an active Cloudflare challenge at all (plain `curl`:
-`200`, no challenge header), so that result was discarded as a bad test target, not real
-evidence. Re-tested against 3 sites with a **confirmed active** Cloudflare challenge
-(verified via `curl` immediately before each call): discogs.com, glassdoor.com,
-upwork.com — **all 3 succeeded**, 30k-46k characters of real page content each. Sell what
-was actually observed working: this endpoint does handle hard, actively bot-protected
-sites, at least in these verified cases — not a guarantee for every site, but a real,
-checked capability rather than an assumed one.
-
-**Margin, at the cheapest prepaid tier of each provider (real numbers, not estimates):**
+**Margin, at the cheapest prepaid tier of each provider (real numbers, verified against
+each provider's own current pricing docs, cited — not estimates):**
 
 | Endpoint | Sale price | Upstream cost | Margin | Upstream unit |
 |---|---|---|---|---|
-| `POST /api/search/web` | $0.01 | $0.008 | $0.002 (~25%) | Tavily pay-as-you-go, $0.008/credit, 1 credit per basic search |
-| `POST /api/search/serp` | $0.005 | $0.001 | $0.004 (~5x) | Serper Starter pack, $50/50,000 credits, 1 credit per query |
-| `POST /api/web/scrape` | $0.02 | $0.008 | $0.012 (~2.5x) | Tavily pay-as-you-go, $0.008/credit, 1 credit per single-URL basic extract |
+| `POST /api/search/web` | $0.01 | $0.008 | $0.002 (20%) | Tavily pay-as-you-go, $0.008/credit, 1 credit per basic search ([docs.tavily.com/documentation/api-credits](https://docs.tavily.com/documentation/api-credits)) |
+| `POST /api/search/serp` | $0.005 | $0.001 | $0.004 (80%) | Serper Starter pack, $50/50,000 credits, 1 credit per query up to 10 results (serper.dev's own pricing page was returning a 404 when last checked — figure corroborated by third-party sources, not the primary source; our own account balance confirms $0.001/credit is consistent with real usage) |
 
 `/api/search/web`'s margin is thinner than the "cost × ~2" target set out in the brief —
 Tavily's real floor ($0.008/credit) is higher than assumed, and $0.01 was kept as the sale
@@ -204,20 +187,21 @@ discipline as `paiements.jsonl`/`sondages.jsonl`), so actual margin (sale price 
 known and fixed; only the cost side needs tracking) can be checked against these estimates
 over time rather than assumed to hold forever.
 
-**⚠️ Operational gotcha found shipping this (2026-09-02): CDP's mainnet facilitator
-silently rejects payments for endpoints with a long `description`.** `/api/web/scrape`'s
-first description (557 chars) failed real mainnet payment 5/5 times — the facilitator's
-`/verify` call returned `"'paymentPayload' is invalid: must match one of [x402V2Pay..."`,
-which surfaces to the buyer as a bare, unhelpful `402` (looks identical to "insufficient
-funds" or "didn't pay at all" — nothing in the response says "description too long").
-Reproduced locally by running this server with `NETWORK=base` against the real CDP
-facilitator (no deploy needed per iteration) and bisecting: every other endpoint's
-shorter description settled fine in the same session (the 334-char `/api/search/web`
-included), and trimming this one to 301 chars fixed it, confirmed with 3/3 real settled
-mainnet transactions. Root cause and exact limit not confirmed (CDP's schema isn't
-public) — the testnet facilitator did **not** reproduce this at 557 chars, so **always
-verify a new/lengthened endpoint description with a real mainnet payment**, not just
-testnet, before trusting it. Rule of thumb: keep `description` well under ~350 chars.
+**⚠️ Operational gotcha found shipping the now-retired `/api/web/scrape` (2026-09-02):
+CDP's mainnet facilitator silently rejects payments for endpoints with a long
+`description`.** Its first description (557 chars) failed real mainnet payment 5/5 times —
+the facilitator's `/verify` call returned `"'paymentPayload' is invalid: must match one of
+[x402V2Pay..."`, which surfaces to the buyer as a bare, unhelpful `402` (looks identical to
+"insufficient funds" or "didn't pay at all" — nothing in the response says "description too
+long"). Reproduced locally by running this server with `NETWORK=base` against the real CDP
+facilitator (no deploy needed per iteration) and bisecting: every other endpoint's shorter
+description settled fine in the same session (the 334-char `/api/search/web` included), and
+trimming to 301 chars fixed it, confirmed with 3/3 real settled mainnet transactions. Root
+cause and exact limit not confirmed (CDP's schema isn't public) — the testnet facilitator
+did **not** reproduce this at 557 chars, so **always verify a new/lengthened endpoint
+description with a real mainnet payment**, not just testnet, before trusting it. This
+lesson outlives the endpoint that surfaced it — rule of thumb for any future endpoint:
+keep `description` well under ~350 chars.
 
 **Failure handling**: `lib/tavily.js` and `lib/serper.js` collapse every upstream failure
 mode — missing API key, network error, any non-2xx response (including an exhausted
@@ -272,7 +256,7 @@ lib/
   stats-daily.js               # computes GET /stats/daily (protected) — revenue, top-10 UA
   stats-probes.js               # computes GET /stats/probes (protected) — full UA/IP long tail, scanner/cible
   stats-echecs.js                # computes GET /stats/echecs (protected) — last 100 failures + counters
-  tavily.js                   # shared Tavily client for /api/search/web and /api/web/scrape (see "Premium reseller")
+  tavily.js                   # shared Tavily client for /api/search/web (see "Premium reseller")
   serper.js                   # shared Serper.dev client for /api/search/serp (see "Premium reseller")
   couts-log.js                # logs our own upstream cost per premium-reseller call to logs/couts.jsonl
 endpoints/                 # one file = one endpoint, auto-loaded
@@ -311,7 +295,6 @@ endpoints/                 # one file = one endpoint, auto-loaded
   ai-translate.js                       # POST /api/ai/translate
   search-web.js                          # POST /api/search/web (paid, $0.01 — premium reseller, Tavily)
   search-serp.js                          # POST /api/search/serp (paid, $0.005 — premium reseller, Serper)
-  web-scrape.js                            # POST /api/web/scrape (paid, $0.02 — premium reseller, Tavily)
 scripts/
   generate-buyer-wallet.js # generates BUYER_PRIVATE_KEY (viem) + prints the address
   buyer-test.js            # buyer client: receives the 402, pays, prints the response (path/method/body configurable)
@@ -362,7 +345,7 @@ text") — that's what buyer agents match against in the Bazaar and in
 | `BUYER_PRIVATE_KEY` | Test buyer wallet's private key — **never** set server-side in production (see `render.yaml`) |
 | `ANTHROPIC_API_KEY` | Required for `/api/ai/*` and `/api/web/extract` (Claude Haiku 4.5) — without it, these endpoints return a clean 500 error explaining the missing key |
 | `GITHUB_TOKEN` | Optional — raises the GitHub rate limit (60/h → 5000/h) for `/api/github/repo`. No scope required (public repo data) |
-| `TAVILY_API_KEY` | Required for `/api/search/web` and `/api/web/scrape` (see "Premium reseller") — without it, these return a clean `503`, never a `500` |
+| `TAVILY_API_KEY` | Required for `/api/search/web` (see "Premium reseller") — without it, it returns a clean `503`, never a `500` |
 | `SERPER_API_KEY` | Required for `/api/search/serp` (see "Premium reseller") — without it, returns a clean `503`, never a `500` |
 | `PORT` | Server port — provided automatically by Render in production, 4021 locally |
 
