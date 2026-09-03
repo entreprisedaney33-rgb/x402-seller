@@ -1,6 +1,6 @@
 {
   "name": "x402-seller-mcp",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "mcpName": "io.github.entreprisedaney33-rgb/x402-seller-mcp",
   "description": "MCP server exposing x402-seller's paid API endpoints (crypto prices, DeFi data, web reading, AI tasks) as tools for AI agents — pay-per-call in USDC over x402, no API key.",
   "type": "module",

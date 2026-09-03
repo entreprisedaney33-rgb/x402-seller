@@ -1129,7 +1129,7 @@
         {
           "scheme": "exact",
           "network": "eip155:8453",
-          "price": "$0.005",
+          "price": "$0.05",
           "payTo": "0x5c3DB195a38f39074d8c891741A82f6D8f2A16Cc"
         }
       ],
@@ -1234,7 +1234,7 @@
         {
           "scheme": "exact",
           "network": "eip155:8453",
-          "price": "$0.005",
+          "price": "$0.05",
           "payTo": "0x5c3DB195a38f39074d8c891741A82f6D8f2A16Cc"
         }
       ],
@@ -1339,7 +1339,7 @@
         {
           "scheme": "exact",
           "network": "eip155:8453",
-          "price": "$0.005",
+          "price": "$0.05",
           "payTo": "0x5c3DB195a38f39074d8c891741A82f6D8f2A16Cc"
         }
       ],
@@ -1441,7 +1441,7 @@
         {
           "scheme": "exact",
           "network": "eip155:8453",
-          "price": "$0.005",
+          "price": "$0.05",
           "payTo": "0x5c3DB195a38f39074d8c891741A82f6D8f2A16Cc"
         }
       ],
@@ -1543,7 +1543,7 @@
         {
           "scheme": "exact",
           "network": "eip155:8453",
-          "price": "$0.005",
+          "price": "$0.05",
           "payTo": "0x5c3DB195a38f39074d8c891741A82f6D8f2A16Cc"
         }
       ],
@@ -2726,6 +2726,238 @@
       }
     },
     {
+      "url": "https://x402-seller-0ay3.onrender.com/api/search/serp",
+      "method": "POST",
+      "description": "Structured Google search results (organic listings, direct answer box, related questions) — for an agent that needs to know what Google actually ranks for a query (competitive research, SEO/brand monitoring, fact-checking search visibility). JSON body: {query: string, country?: 2-letter ISO code (default 'us')}.",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "price": "$0.005",
+          "payTo": "0x5c3DB195a38f39074d8c891741A82f6D8f2A16Cc"
+        }
+      ],
+      "extensions": {
+        "bazaar": {
+          "info": {
+            "input": {
+              "type": "http",
+              "method": "POST",
+              "bodyType": "json",
+              "body": {
+                "query": "best crypto payment protocols 2026",
+                "country": "us"
+              }
+            },
+            "output": {
+              "type": "json",
+              "example": {
+                "query": "best crypto payment protocols 2026",
+                "country": "us",
+                "answer": null,
+                "results": [
+                  {
+                    "position": 1,
+                    "title": "x402 Protocol",
+                    "url": "https://x402.gitbook.io/x402",
+                    "snippet": "..."
+                  }
+                ],
+                "related_questions": [
+                  "What is the x402 protocol?"
+                ],
+                "fetched_at": "2026-09-02T12:00:00.000Z"
+              }
+            }
+          },
+          "schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "http"
+                  },
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "POST",
+                      "PUT",
+                      "PATCH"
+                    ]
+                  },
+                  "bodyType": {
+                    "type": "string",
+                    "enum": [
+                      "json",
+                      "form-data",
+                      "text"
+                    ]
+                  },
+                  "body": {
+                    "properties": {
+                      "query": {
+                        "type": "string",
+                        "description": "Search query."
+                      },
+                      "country": {
+                        "type": "string",
+                        "description": "2-letter ISO country code to localize results (default 'us')."
+                      }
+                    },
+                    "required": [
+                      "query"
+                    ]
+                  }
+                },
+                "required": [
+                  "type",
+                  "method",
+                  "bodyType",
+                  "body"
+                ],
+                "additionalProperties": false
+              },
+              "output": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "example": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            },
+            "required": [
+              "input"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "url": "https://x402-seller-0ay3.onrender.com/api/search/web",
+      "method": "POST",
+      "description": "Semantic web search (understands intent, not just keyword matching) — for an agent that needs current information, facts, or sources beyond its training data. Returns ranked results (title/url/content snippet) plus an optional AI-generated direct answer, via Tavily. JSON body: {query: string, num_results?: integer 1-10 (default 5)}.",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "price": "$0.01",
+          "payTo": "0x5c3DB195a38f39074d8c891741A82f6D8f2A16Cc"
+        }
+      ],
+      "extensions": {
+        "bazaar": {
+          "info": {
+            "input": {
+              "type": "http",
+              "method": "POST",
+              "bodyType": "json",
+              "body": {
+                "query": "latest developments in the x402 protocol",
+                "num_results": 5
+              }
+            },
+            "output": {
+              "type": "json",
+              "example": {
+                "query": "latest developments in the x402 protocol",
+                "answer": "x402 is an emerging micropayment protocol built on HTTP 402...",
+                "results": [
+                  {
+                    "title": "x402 Protocol Documentation",
+                    "url": "https://x402.gitbook.io/x402",
+                    "content": "x402 is a payment protocol...",
+                    "score": 0.95
+                  }
+                ],
+                "fetched_at": "2026-09-02T12:00:00.000Z"
+              }
+            }
+          },
+          "schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "http"
+                  },
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "POST",
+                      "PUT",
+                      "PATCH"
+                    ]
+                  },
+                  "bodyType": {
+                    "type": "string",
+                    "enum": [
+                      "json",
+                      "form-data",
+                      "text"
+                    ]
+                  },
+                  "body": {
+                    "properties": {
+                      "query": {
+                        "type": "string",
+                        "description": "Search query."
+                      },
+                      "num_results": {
+                        "type": "integer",
+                        "description": "Number of results to return (1-10, default 5)."
+                      }
+                    },
+                    "required": [
+                      "query"
+                    ]
+                  }
+                },
+                "required": [
+                  "type",
+                  "method",
+                  "bodyType",
+                  "body"
+                ],
+                "additionalProperties": false
+              },
+              "output": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "example": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            },
+            "required": [
+              "input"
+            ]
+          }
+        }
+      }
+    },
+    {
       "url": "https://x402-seller-0ay3.onrender.com/api/web/extract",
       "method": "POST",
       "description": "Read a public web page and extract structured data from it according to a JSON Schema you provide, via Claude Haiku 4.5 — combines page fetching, readability extraction, and structured extraction in one call. Body: {url: string (http/https), schema: object (JSON Schema describing the fields to extract, page content truncated to 8000 chars)}.",
@@ -3053,5 +3285,5 @@
     }
   ],
   "docs": "https://x402-seller-0ay3.onrender.com",
-  "updated": "2026-09-02T16:10:34.845Z"
+  "updated": "2026-09-03T18:06:17.237Z"
 }
