@@ -88,6 +88,15 @@ export default {
   // route admin, jamais publiee dans .well-known/x402.json ni openapi.json.
   // Vide => route toujours refusee (401), jamais "cle vide == acces libre".
   statsKey: process.env.STATS_KEY || "",
+  // Adresse du portefeuille acheteur de TEST (scripts/buyer-test.js,
+  // scripts/seed-bazaar.js, le cron seed-hebdo). PAS un secret — c'est une
+  // adresse publique deja visible partout (rapports, README, explorateur
+  // de blocs) — mais une seule source de verite ici plutot que repetee en
+  // dur dans chaque fichier de stats, pour que lib/stats.js et
+  // lib/stats-daily.js ne puissent jamais silencieusement diverger sur
+  // quelle adresse compte comme "test". Comparer via toLowerCase() cote
+  // appelant (les adresses EVM peuvent revenir en casse mixte EIP-55).
+  testWalletAddress: process.env.TEST_WALLET_ADDRESS || "0x216373E6A79E75BE5913355C983985DD78EE9fC2",
   dataDir,
   port,
   // URL publique de CE serveur, sans slash final. Toute ressource annoncee
