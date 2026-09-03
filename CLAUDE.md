@@ -32,7 +32,7 @@ Serveur de vente d'API à l'appel via le protocole x402 (paiements USDC sur Base
   | `PORT` | Port du serveur (fourni automatiquement par Render en prod, 4021 en local) |
 - **`docs/PROJET-X402-DOSSIER-V2.md`** — dossier de référence complet : stratégie, paliers d'investissement, chronologie, backlog priorisé, comptes/annuaires, rituel hebdomadaire. À lire en premier pour tout contexte au-delà du code lui-même.
 - **`logs/`** — journaux applicatifs (paiements, sondages 402, coûts amont premium, résumés de seed), jamais commités. Chemin réel piloté par `DATA_DIR` (défaut `./logs` en local ; en prod, doit pointer vers un disque persistant Render, sinon perdu à chaque déploiement).
-- **Render** — service `srv-dabgpngjo6nc739as6u0` (le serveur lui-même, plan Starter, disque persistant 1 Go, auto-deploy sur push) ; cron job `crn-dac0ufnavr4c73b38ki0` (`x402-seed-hebdo`, reseed complet chaque lundi pour que le catalogue Bazaar ne se désindexe pas).
+- **Render** — service `srv-dabgpngjo6nc739as6u0` (le serveur lui-même, plan Starter, disque persistant 1 Go, auto-deploy sur push) ; cron job `crn-dac0ufnavr4c73b38ki0` (`x402-seed-hebdo`, reseed chaque lundi d'un **sous-ensemble configurable** — `SEED_PATHS` en tête de `scripts/seed-hebdo.js` — pour que le catalogue Bazaar ne se désindexe pas ; voir `docs/` pour la note datée sur pourquoi ce n'est plus un reseed complet).
 - **GitHub** : `entreprisedaney33-rgb/x402-seller` (public, historique audité sans secrets).
 - **URL de prod** : https://x402-seller-0ay3.onrender.com
 - **`mcp/`** — sous-projet séparé : le même catalogue d'endpoints exposé comme outils MCP (serveur stdio, publié sur npm/Smithery/le registre officiel MCP). Son propre `package.json`, ne pas mélanger avec les dépendances racine.
@@ -46,7 +46,7 @@ npm run buyer-test:prod      # idem, mais contre https://x402-seller-0ay3.onrend
 npm run seed                 # amorce le catalogue Bazaar (tous les endpoints payants découverts dynamiquement)
 npm run seed -- --only=/api/gas/base,/api/gas/ethereum   # amorce seulement certains chemins
 npm run bazaar                # vérifie l'état d'indexation Bazaar
-npm run seed-hebdo            # relance manuellement le seed complet (celui que le cron Render exécute chaque lundi)
+npm run seed-hebdo            # relance manuellement le seed du sous-ensemble SEED_PATHS (celui que le cron Render exécute chaque lundi)
 npm run cle                   # importe la clé CDP depuis CLE_API_CDP.txt vers le .env
 ```
 

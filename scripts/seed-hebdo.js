@@ -1,14 +1,29 @@
-// scripts/seed-hebdo.js — seed hebdomadaire automatise (mode complet) : paie
-// pour de vrai CHAQUE endpoint payant decouvert dynamiquement depuis
+// scripts/seed-hebdo.js — seed hebdomadaire automatise : paie pour de vrai
+// UN SOUS-ENSEMBLE CONFIGURABLE des endpoints payants (voir SEED_PATHS
+// ci-dessous — la SEULE liste a modifier, jamais un filtre eparpille plus
+// bas dans le fichier), decouverts dynamiquement depuis
 // GET {TARGET_URL}/.well-known/x402.json (la meme decouverte dynamique que
 // scripts/seed-bazaar.js — voir scripts/lib/seed-core.js, partage entre les
 // deux), 1 retry par endpoint en cas d'echec, 3s de pause entre chaque appel.
 //
-// Pourquoi : le facilitateur CDP desindexe du Bazaar les endpoints qui n'ont
-// pas vu de paiement reel recent. Ce script tourne sur un cron Render
-// separe (voir render-cron-seed.json — cree via l'API, pas dans render.yaml,
-// pour ne rien toucher au service web existant) chaque lundi, pour que le
-// catalogue Bazaar ne se vide jamais, meme sans trafic agent reel.
+// Pourquoi seulement un sous-ensemble (2026-09-03, voir docs/ pour la note
+// datee complete) : reseeder les 33 endpoints payants coutait $0.440/run
+// (~$1,90/mois) pour ~$0,005 de revenu tiers reel depuis le lancement —
+// disproportionne. Verifie AVANT de reduire, pas suppose : la desindexation
+// Bazaar du facilitateur CDP est documentee PAR ENDPOINT, avec une fenetre
+// de 30 JOURS sans reglement avant suppression du catalogue ET des resultats
+// de recherche (docs.cdp.coinbase.com/x402/seller/get-discovered, verifie
+// sur la page brute, pas seulement resume) — separement, un mecanisme de
+// sondage de disponibilite retrograde puis retire un endpoint qui echoue a
+// des probes consecutifs (independant des paiements). Consequence directe :
+// un reseed hebdomadaire n'etait deja pas necessaire pour rester sous 30
+// jours (4x plus frequent que le minimum) ; le vrai levier d'economie est
+// bien la TAILLE de la liste, pas la frequence — d'ou ce sous-ensemble.
+// Risque assume : les endpoints RETIRES de SEED_PATHS sortiront du Bazaar
+// (catalogue + recherche) apres 30 jours sans paiement reel — ils restent
+// neanmoins toujours servis normalement et toujours listes dans nos propres
+// documents de decouverte (GET /.well-known/x402.json, GET /openapi.json),
+// seul le catalogue du facilitateur CDP est concerne.
 //
 // Garde-fou avant toute depense : verifie le solde USDC du portefeuille
 // acheteur sur Base MAINNET (toujours mainnet, quel que soit NETWORK — ce
@@ -41,9 +56,30 @@ import { wakeServer, runSeed } from "./lib/seed-core.js";
 // d'environnement du cron job font deja foi et aucun .env n'existe.
 loadEnv();
 
+// --- Configuration du sous-ensemble reseede (a modifier ICI uniquement) ----
+// Les 5 endpoints /api/defi/yields* ($0.05 chacun, prix relatif eleve depuis
+// le test d'elasticite du 2026-09-03) + gas/base et defi/price ($0.005
+// chacun) : $0.25 + $0.01 = $0.26/run, ~4,33 semaines/mois -> ~$1,13/mois
+// (contre $0.440/run, ~$1,91/mois pour les 33 endpoints). Recalcule
+// automatiquement a chaque run cote logs (voir "Total depense" plus bas) —
+// cette estimation en commentaire peut driver si les prix changent encore,
+// se fier au chiffre affiche en sortie de run, pas a ce commentaire.
+const SEED_PATHS = [
+  "/api/defi/yields",
+  "/api/defi/yields/top",
+  "/api/defi/yields/by-token",
+  "/api/defi/yields/by-chain",
+  "/api/defi/yields/pool",
+  "/api/gas/base",
+  "/api/defi/price",
+];
+
 const TARGET_URL = (process.env.TARGET_URL || "https://x402-seller-0ay3.onrender.com").replace(/\/$/, "");
 const PAUSE_MS = 3000;
-const MIN_BALANCE_USD = 0.5;
+// ~1.15x le cout d'un run ($0.26) — meme ratio de marge que l'ancien garde-fou
+// ($0.50 pour un run a $0.440), recalcule pour le nouveau cout plutot que
+// laisse a une valeur devenue disproportionnee.
+const MIN_BALANCE_USD = 0.3;
 
 // USDC natif sur Base mainnet (eip155:8453) — meme adresse que celle
 // utilisee par @x402/evm en interne (node_modules/@x402/evm/dist/esm/
@@ -100,6 +136,8 @@ if (balanceUsd < MIN_BALANCE_USD) {
   process.exit(1);
 }
 
+console.log(`Sous-ensemble : ${SEED_PATHS.length} endpoint(s) configure(s) dans SEED_PATHS.`);
+
 // --- Reveil du serveur -------------------------------------------------------
 
 console.log(`\nReveil   : GET ${TARGET_URL}/health (timeout 90 s)...`);
@@ -111,7 +149,7 @@ try {
   process.exit(1);
 }
 
-// --- Seed complet (tous les endpoints decouverts, 1 retry par echec) -------
+// --- Seed du sous-ensemble configure (SEED_PATHS), 1 retry par echec -------
 
 console.log(`\nDecouverte : GET ${TARGET_URL}/.well-known/x402.json...`);
 
@@ -120,15 +158,21 @@ try {
   seedResult = await runSeed({
     targetUrl: TARGET_URL,
     account,
-    only: null, // mode complet : tout ce qui est decouvert, jamais une liste figee
+    only: new Set(SEED_PATHS),
     pauseMs: PAUSE_MS,
     retryOnFail: true,
-    onDiscovered: ({ discoveredCount, skippedNoExample, toCallCount }) => {
-      console.log(`${discoveredCount} endpoint(s) payant(s) decouvert(s).`);
+    onDiscovered: ({ discoveredCount, skippedNoExample, skippedNotFound, toCallCount }) => {
+      console.log(`${discoveredCount} endpoint(s) payant(s) decouvert(s) au total (mode complet, pour reference).`);
+      for (const wanted of skippedNotFound) {
+        console.warn(`⚠️  SEED_PATHS demande "${wanted}", introuvable dans .well-known/x402.json — ignore.`);
+      }
       for (const w of skippedNoExample) {
         console.warn(`⚠️  Pas d'exemple pour ${w} dans EXAMPLES — endpoint saute.`);
       }
-      console.log(`${toCallCount} endpoint(s) a appeler, pause de ${PAUSE_MS / 1000}s entre chaque, 1 retry si echec.\n`);
+      console.log(
+        `${toCallCount}/${SEED_PATHS.length} endpoint(s) du sous-ensemble a appeler, pause de ${PAUSE_MS / 1000}s ` +
+          `entre chaque, 1 retry si echec.\n`
+      );
     },
     onStart: (i, total, ep) => {
       process.stdout.write(`[${i + 1}/${total}] ${ep.method} ${ep.path} ... `);
@@ -163,8 +207,8 @@ console.table(
 );
 console.log(
   `\nTotal depense : $${totalSpent.toFixed(3)} (${succeeded.length}/${results.length} paiement(s) reussi(s), ` +
-    `${failed.length} echec(s) apres retry, sur ${discoveredCount} endpoint(s) decouvert(s), ` +
-    `${skippedNoExample.length} saute(s) faute d'exemple).`
+    `${failed.length} echec(s) apres retry, sous-ensemble de ${SEED_PATHS.length} sur ${discoveredCount} ` +
+    `endpoint(s) payant(s) au total, ${skippedNoExample.length} saute(s) faute d'exemple).`
 );
 
 // --- Resume JSON dans logs/seeds.jsonl (disque LOCAL uniquement) -----------
@@ -174,6 +218,7 @@ const summary = {
   target: TARGET_URL,
   buyer: account.address,
   balance_usdc_before: balanceUsd,
+  seed_paths_configured: SEED_PATHS,
   discovered: discoveredCount,
   skipped_no_example: skippedNoExample.length,
   attempted: results.length,

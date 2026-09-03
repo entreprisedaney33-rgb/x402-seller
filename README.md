@@ -300,7 +300,7 @@ scripts/
   buyer-test.js            # buyer client: receives the 402, pays, prints the response (path/method/body configurable)
   check-bazaar.js          # npm run bazaar — queries the CDP facilitator's Bazaar discovery
   seed-bazaar.js           # npm run seed [-- --only=...] — pays real endpoints so the Bazaar indexes them
-  seed-hebdo.js            # npm run seed-hebdo — full-mode weekly seed with a balance guard + retry (see below)
+  seed-hebdo.js            # npm run seed-hebdo — weekly seed of a configurable subset (SEED_PATHS), balance guard + retry (see below)
   lib/seed-core.js         # shared dynamic-discovery + payment loop behind seed-bazaar.js and seed-hebdo.js
   importer-cle-cdp.js      # npm run cle — imports the CDP key into .env without ever printing it
 render.yaml                 # Render deployment blueprint (Node web service)
@@ -436,17 +436,37 @@ npm run bazaar
 
 ### Weekly automated seed (staying indexed in the Bazaar)
 
-The CDP facilitator's Bazaar de-lists endpoints that haven't seen a real
-settled payment recently — real agent traffic alone can't be relied on to
-keep every endpoint fresh. A dedicated **Render Cron Job** (`x402-seed-hebdo`,
-created via the Render API, not in `render.yaml` — a separate resource on
-purpose, so it can never touch the web service's deploys) runs
-`node scripts/seed-hebdo.js` every Monday: full mode (every endpoint
-discovered from the live `/.well-known/x402.json`, not a fixed list), one
-retry per endpoint on failure, 3s pause between calls. Before spending
-anything it reads the buyer wallet's real USDC balance on Base mainnet and
-refuses to run if it's under $0.50 — recharge the wallet and it resumes on
-its own next week, no code change needed.
+The CDP facilitator de-lists a resource from the Bazaar **per endpoint**
+after 30 days without a settled payment on that specific URL (verified
+directly against docs.cdp.coinbase.com/x402/seller/get-discovered, not
+assumed — a separate, payment-independent health-probe mechanism also
+down-ranks/removes an endpoint that fails consecutive availability checks).
+Real agent traffic alone can't be relied on to keep every endpoint fresh.
+
+A dedicated **Render Cron Job** (`x402-seed-hebdo`, created via the Render
+API, not in `render.yaml` — a separate resource on purpose, so it can never
+touch the web service's deploys) runs `node scripts/seed-hebdo.js` every
+Monday against a **configurable subset** (`SEED_PATHS`, at the top of the
+file — the only place to edit it), one retry per endpoint on failure, 3s
+pause between calls.
+
+**Reseeding every endpoint stopped making sense once the catalog grew and
+one price changed** (2026-09-03): at $0.440/run (33 endpoints, ~$1.90/month)
+against ~$0.005 of real third-party revenue since launch, the cost was
+disproportionate — and, per the 30-day-per-endpoint rule above, a *weekly*
+run was already 4x more frequent than the minimum needed anyway, so the
+real lever is the endpoint *list*, not the frequency. `SEED_PATHS` now
+seeds only the 5 `/api/defi/yields*` routes ($0.05 each, since a pricing
+test) plus `gas/base` and `defi/price` ($0.005 each) — **$0.26/run,
+~$1.13/month**. The endpoints left out of `SEED_PATHS` will drop out of the
+Bazaar catalog after 30 days without a real payment — an accepted risk (see
+`docs/` for the dated note); they stay fully served and still listed in this
+server's own discovery documents (`.well-known/x402.json`, `openapi.json`)
+regardless, only the CDP facilitator's own catalog is affected. Before
+spending anything the script reads the buyer wallet's real USDC balance on
+Base mainnet and refuses to run if it's under $0.30 (~1.15x one run's cost,
+same margin ratio as the old $0.50/$0.440 guard, rescaled) — recharge the
+wallet and it resumes on its own next week, no code change needed.
 
 `scripts/lib/seed-core.js` holds the shared discovery+payment logic used by
 both this script and `scripts/seed-bazaar.js` (the on-demand/`--only`
