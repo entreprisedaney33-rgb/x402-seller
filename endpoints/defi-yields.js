@@ -1,4 +1,4 @@
-// GET /api/defi/yields?chain=base&min_tvl=1000000 — endpoint payant (0,005 $).
+// GET /api/defi/yields?chain=base&min_tvl=1000000 — endpoint payant (0,05 $).
 // Meilleurs rendements de pools DeFi, source DefiLlama (yields.llama.fi).
 //
 // ATTENTION LICENCE : voir endpoints/defi-price.js pour le detail des CGU
@@ -10,7 +10,7 @@ import { cached } from "../lib/cache.js";
 
 export const path = "/api/defi/yields";
 export const method = "GET";
-export const price = "$0.005";
+export const price = "$0.05";
 export const description =
   "Best DeFi yields (APY) across lending/liquidity pools, highest first, source DefiLlama. " +
   "Optional parameters: ?chain=<slug> (e.g. base), ?min_tvl=<usd> (minimum pool TVL), ?limit=<n> (default 20, max 100).";

@@ -1,4 +1,4 @@
-// GET /api/defi/yields/top?limit=10&min_tvl=10000000 — endpoint payant (0,005 $).
+// GET /api/defi/yields/top?limit=10&min_tvl=10000000 — endpoint payant (0,05 $).
 // Meilleurs rendements DeFi tous criteres confondus (toute chaine, tout
 // projet), tries par APY decroissant — dedie a la recherche d'agent
 // "best yields right now", complementaire du generique /api/defi/yields.
@@ -12,7 +12,7 @@ import { cached } from "../lib/cache.js";
 
 export const path = "/api/defi/yields/top";
 export const method = "GET";
-export const price = "$0.005";
+export const price = "$0.05";
 export const description =
   "Top DeFi yields (APY) across ALL chains and protocols, highest first, source DefiLlama — for an agent " +
   "hunting the single best yield opportunity right now, with no chain/token filter. " +

@@ -1,4 +1,4 @@
-// GET /api/defi/yields/by-token?symbol=USDC&limit=10 — endpoint payant (0,005 $).
+// GET /api/defi/yields/by-token?symbol=USDC&limit=10 — endpoint payant (0,05 $).
 // Meilleurs rendements DeFi pour un jeton donne (toute chaine, tout
 // projet), tries par APY decroissant — dedie a la recherche d'agent
 // "best yield for token X", complementaire du generique /api/defi/yields.
@@ -12,7 +12,7 @@ import { cached } from "../lib/cache.js";
 
 export const path = "/api/defi/yields/by-token";
 export const method = "GET";
-export const price = "$0.005";
+export const price = "$0.05";
 export const description =
   "Best DeFi yields (APY) for a given token symbol, across all chains and protocols, highest first, source " +
   "DefiLlama — for an agent asking 'where's the best yield for my USDC/ETH/...?'. " +

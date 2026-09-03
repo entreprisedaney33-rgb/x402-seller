@@ -1,4 +1,4 @@
-// GET /api/defi/yields/by-chain?chain=base&limit=10 — endpoint payant (0,005 $).
+// GET /api/defi/yields/by-chain?chain=base&limit=10 — endpoint payant (0,05 $).
 // Meilleurs rendements DeFi sur une chaine donnee (tout projet, tout
 // jeton), tries par APY decroissant — dedie a la recherche d'agent
 // "best yields on chain X", complementaire du generique /api/defi/yields.
@@ -12,7 +12,7 @@ import { cached } from "../lib/cache.js";
 
 export const path = "/api/defi/yields/by-chain";
 export const method = "GET";
-export const price = "$0.005";
+export const price = "$0.05";
 export const description =
   "Best DeFi yields (APY) on a given blockchain, across all protocols and tokens, highest first, source " +
   "DefiLlama — for an agent asking 'where's the best yield on Base/Ethereum/Arbitrum/...?'. " +

@@ -1,4 +1,4 @@
-// GET /api/defi/yields/pool?pool=<id> — endpoint payant (0,005 $).
+// GET /api/defi/yields/pool?pool=<id> — endpoint payant (0,05 $).
 // Detail + historique APY/TVL recent d'un pool DeFi precis, source
 // DefiLlama — pour un agent qui a deja un pool id (depuis /pools,
 // /api/defi/yields/top|by-token|by-chain) et veut verifier sa stabilite
@@ -22,7 +22,7 @@ import { cached } from "../lib/cache.js";
 
 export const path = "/api/defi/yields/pool";
 export const method = "GET";
-export const price = "$0.005";
+export const price = "$0.05";
 export const description =
   "Detail and recent APY/TVL history of one specific DeFi pool (identified by its DefiLlama pool id, as " +
   "returned by /api/defi/yields/top, /by-token, or /by-chain), source DefiLlama. " +
