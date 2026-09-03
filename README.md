@@ -260,14 +260,18 @@ config.js                  # reads .env, validates it, maps base-sepolia/base ->
 discovery.js                # builds the GET /.well-known/x402.json document
 payment-log.js              # logs every successful payment to logs/paiements.jsonl
 sondage-log.js              # logs every 402 response served ("probes") to logs/sondages.jsonl
+echecs-log.js                # logs settlement/upstream failures to logs/echecs.jsonl (see "Observability")
 lib/
-  http.js                   # fetchJson/fetchText (10s timeout, User-Agent), safeHandler (never a raw 500)
+  http.js                   # fetchJson/fetchText (10s timeout, User-Agent), safeHandler (never a raw 500, logs UpstreamError)
   cache.js                  # 60s in-memory cache for market/network data
   anthropic.js               # shared Claude Haiku 4.5 client for /api/ai/* and /api/web/extract
   chains.js                  # resolves ?chain=base|ethereum -> viem client, shared gas-price helper
   defi.js                    # shared DefiLlama helpers for /api/price/*
   web.js                      # SSRF-guarded page fetch + readability-to-Markdown extraction for /api/web/*
   stats.js                    # computes GET /stats from the two jsonl logs
+  stats-daily.js               # computes GET /stats/daily (protected) — revenue, top-10 UA
+  stats-probes.js               # computes GET /stats/probes (protected) — full UA/IP long tail, scanner/cible
+  stats-echecs.js                # computes GET /stats/echecs (protected) — last 100 failures + counters
   tavily.js                   # shared Tavily client for /api/search/web and /api/web/scrape (see "Premium reseller")
   serper.js                   # shared Serper.dev client for /api/search/serp (see "Premium reseller")
   couts-log.js                # logs our own upstream cost per premium-reseller call to logs/couts.jsonl
@@ -321,6 +325,7 @@ logs/paiements.jsonl        # successful-payment log (gitignored, created on the
 logs/sondages.jsonl         # 402-response log (gitignored, created on the first probe)
 logs/seeds.jsonl            # weekly seed run summaries (gitignored, LOCAL only — see below)
 logs/couts.jsonl            # our own upstream cost per premium-reseller call (gitignored, see "Premium reseller")
+logs/echecs.jsonl           # settlement/upstream failure log (gitignored, created on the first failure)
 .env / .env.example        # configuration (.env is never committed)
 ```
 
@@ -496,6 +501,25 @@ npm run seed-hebdo
   successful-payment counts per endpoint, over the last 24h and 7d.
   Contains no sensitive data (no IPs, payer addresses, or transaction
   hashes) — see `lib/stats.js`.
+- **Failure log**: two cases that used to be silently swallowed now write a
+  JSON line each to `logs/echecs.jsonl` (`type: "settlement_failed"` from
+  `server.js`'s `onAfterSettle` when a verified payment's settle call
+  itself fails — motif/payer/User-Agent, never a key or full signature;
+  `type: "upstream_error"` from `lib/http.js`'s `safeHandler` whenever a
+  paid endpoint's handler throws an `UpstreamError` — endpoint, mapped
+  provider, the real upstream HTTP status when one was received, a short
+  message). Since x402 only settles after a successful handler response, an
+  `upstream_error` never means a buyer was charged for a failed request —
+  see `echecs-log.js`.
+- **`GET /stats/probes?key=<STATS_KEY>`** (protected, same key as
+  `/stats/daily` below) : the full, untruncated long tail of who's probing
+  — by User-Agent and by truncated IP, 24h/7d, each User-Agent tagged
+  `profil: "scanner"` (≥10 distinct endpoints touched) or `"cible"` (fewer
+  — a genuine low-volume prospect wouldn't make `/stats/daily`'s top-10
+  cut) — see `lib/stats-probes.js`.
+- **`GET /stats/echecs?key=<STATS_KEY>`** (protected): the last 100 lines
+  of `logs/echecs.jsonl` plus 24h/7d counters by `type` — see
+  `lib/stats-echecs.js`.
 
 ## Deploying to Render
 

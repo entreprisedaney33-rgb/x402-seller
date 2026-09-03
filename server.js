@@ -15,7 +15,10 @@ import { buildDiscoveryDocument } from "./discovery.js";
 import { buildOpenApiDocument } from "./openapi.js";
 import { logPaiementReussi } from "./payment-log.js";
 import { logSondage } from "./sondage-log.js";
+import { logEchecSettlement } from "./echecs-log.js";
 import { computeDailyStats } from "./lib/stats-daily.js";
+import { computeProbesStats } from "./lib/stats-probes.js";
+import { computeEchecsStats } from "./lib/stats-echecs.js";
 import { safeHandler } from "./lib/http.js";
 
 // --- 1. Chargement automatique des endpoints -------------------------------
@@ -65,10 +68,35 @@ const resourceServer = new x402ResourceServer(facilitatorClient).register(
 // ctx.transportContext.request.path est le chemin HTTP reellement appele
 // (voir @x402/core, x402HTTPResourceServer.process : transportContext =
 // { request: enrichedContext }, enrichedContext porte path/method).
+//
+// Echec de reglement (ctx.result.success === false) : x402 a bien VERIFIE
+// le paiement mais le SETTLE cote facilitateur a echoue (fonds
+// insuffisants au moment du reglement, nonce deja consomme, etc.) — jusque
+// la, silencieusement ignore (aucune ligne nulle part). Journalise
+// desormais dans logs/echecs.jsonl (voir echecs-log.js), type
+// "settlement_failed" : jamais la cle/signature complete, seulement le
+// motif fourni par le SDK (ctx.result.errorReason/errorMessage — types
+// verifies dans node_modules/@x402/core, SettleResponseCoreSnapshot),
+// l'adresse payeuse (deja publique) et le User-Agent (via
+// ctx.transportContext.request.adapter.getUserAgent(), meme adaptateur
+// HTTP que celui qui alimente deja ce hook).
 resourceServer.onAfterSettle(async (ctx) => {
-  if (!ctx.result?.success) return;
-
   const endpointPath = ctx.transportContext?.request?.path || ctx.paymentPayload?.resource?.url || null;
+  const method = ctx.transportContext?.request?.method || null;
+
+  if (!ctx.result?.success) {
+    const userAgent = ctx.transportContext?.request?.adapter?.getUserAgent?.() || null;
+    const motif = [ctx.result?.errorReason, ctx.result?.errorMessage].filter(Boolean).join(": ") || "unknown";
+    await logEchecSettlement({
+      endpoint: endpointPath,
+      method,
+      motif,
+      payer: ctx.result?.payer || null,
+      userAgent,
+    });
+    return;
+  }
+
   const matchedEndpoint = endpoints.find((ep) => ep.path === endpointPath);
 
   await logPaiementReussi({
@@ -197,6 +225,37 @@ app.get(
       return;
     }
     res.json(await computeDailyStats());
+  })
+);
+
+// GET /stats/probes?key=<STATS_KEY> — same gate/route pattern as
+// /stats/daily above (protected, never in .well-known/x402.json or
+// /openapi.json). Unlike /stats/daily's top_user_agents (capped at 10),
+// this exposes the FULL untruncated long tail by User-Agent and by
+// truncated IP — see lib/stats-probes.js.
+app.get(
+  "/stats/probes",
+  safeHandler(async (req, res) => {
+    if (!config.statsKey || req.query.key !== config.statsKey) {
+      res.status(401).json({ error: "Missing or invalid 'key' query parameter." });
+      return;
+    }
+    res.json(await computeProbesStats());
+  })
+);
+
+// GET /stats/echecs?key=<STATS_KEY> — same gate/route pattern as
+// /stats/daily above. Surfaces logs/echecs.jsonl (settlement_failed +
+// upstream_error, see echecs-log.js) — the observability gap this was
+// built to close.
+app.get(
+  "/stats/echecs",
+  safeHandler(async (req, res) => {
+    if (!config.statsKey || req.query.key !== config.statsKey) {
+      res.status(401).json({ error: "Missing or invalid 'key' query parameter." });
+      return;
+    }
+    res.json(await computeEchecsStats());
   })
 );
 

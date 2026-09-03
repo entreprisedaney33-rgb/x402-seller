@@ -101,34 +101,37 @@ export async function handler(req, res) {
   // Confirmed real during testing: en.wikipedia.org/wiki/HTTP_402 failed
   // twice via this endpoint (cached failure) but succeeded when called
   // directly moments later, bypassing the cache.
-  let result;
-  try {
-    result = await cached(`web-scrape:${url}`, 60_000, async () => {
-      const data = await tavilyExtract({ url });
-      // Logged regardless of outcome: Tavily bills the attempt whether or
-      // not extraction actually succeeds for this URL (confirmed during
-      // testing — a failed extraction still consumed a credit).
-      await logCoutAmont({ endpoint: path, provider: "tavily", cout_usd: TAVILY_CREDIT_COST_USD });
+  //
+  // No local try/catch here on purpose (fixed 2026-09-03, was previously
+  // catching UpstreamError and responding directly): that duplicated
+  // exactly what safeHandler (lib/http.js) already does — AND, worse,
+  // meant this endpoint's real upstream failures never reached safeHandler
+  // at all, so none of them were ever written to logs/echecs.jsonl (found
+  // by testing the new logging for real: a genuine, reproducible 502 here
+  // produced zero log line, while the identical failure on
+  // /api/search/web — which never had this local catch — logged
+  // correctly). Letting UpstreamError propagate naturally gives the exact
+  // same client-facing response (safeHandler's own UpstreamError branch)
+  // while actually reaching the log.
+  const result = await cached(`web-scrape:${url}`, 60_000, async () => {
+    const data = await tavilyExtract({ url });
+    // Logged regardless of outcome: Tavily bills the attempt whether or
+    // not extraction actually succeeds for this URL (confirmed during
+    // testing — a failed extraction still consumed a credit).
+    await logCoutAmont({ endpoint: path, provider: "tavily", cout_usd: TAVILY_CREDIT_COST_USD });
 
-      const failed = (data.failed_results || [])[0];
-      if (failed) {
-        throw new UpstreamError(`Could not extract this page: ${failed.error || "unknown upstream error"}.`, {
-          status: 502,
-        });
-      }
-      const found = (data.results || [])[0];
-      if (!found) {
-        throw new UpstreamError("Upstream extraction returned no result.", { status: 502 });
-      }
-      return found;
-    });
-  } catch (err) {
-    if (err instanceof UpstreamError) {
-      res.status(err.status).json({ error: err.message });
-      return;
+    const failed = (data.failed_results || [])[0];
+    if (failed) {
+      throw new UpstreamError(`Could not extract this page: ${failed.error || "unknown upstream error"}.`, {
+        status: 502,
+      });
     }
-    throw err;
-  }
+    const found = (data.results || [])[0];
+    if (!found) {
+      throw new UpstreamError("Upstream extraction returned no result.", { status: 502 });
+    }
+    return found;
+  });
 
   res.json({
     url: result.url,
