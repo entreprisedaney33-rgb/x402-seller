@@ -19,7 +19,7 @@ import { logEchecSettlement } from "./echecs-log.js";
 import { computeDailyStats } from "./lib/stats-daily.js";
 import { computeProbesStats } from "./lib/stats-probes.js";
 import { computeEchecsStats } from "./lib/stats-echecs.js";
-import { computeApifyStats } from "./lib/stats-apify.js";
+import { computeApifyStats, computeApifyStatsPublic } from "./lib/stats-apify.js";
 import { safeHandler } from "./lib/http.js";
 
 // --- 1. Chargement automatique des endpoints -------------------------------
@@ -279,6 +279,45 @@ app.get(
       return;
     }
     res.json(await computeApifyStats());
+  })
+);
+
+// Rate-limit for GET /stats/apify/public below: same express-rate-limit library
+// and simple windowMs/limit style already used for apiLimiter above (nothing
+// reinvented) — a dedicated, smaller instance because this route serves a
+// different surface (free, no key, meant for a dashboard tile refresh, not the
+// paid /api/* traffic apiLimiter is sized for). Its real job is defense in
+// depth: computeApifyStatsPublic() -> computeApifyStats() already means a
+// request storm here can trigger AT MOST one real Apify API call per 15-minute
+// cache window (see lib/stats-apify.js's in-flight de-dupe) regardless of this
+// limiter, so this mainly bounds wasted CPU/bandwidth on cache-hit responses,
+// not Apify usage.
+const apifyPublicLimiter = rateLimit({
+  windowMs: 60_000,
+  limit: 30,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  message: { error: "Trop de requetes, reessaie dans une minute." },
+});
+
+// GET /stats/apify/public — free, key-less, scrubbed mirror of GET /stats/apify
+// above, for a static site's client-side JS (the Jarvis PWA's "Crypto x402"
+// panel) that cannot hold STATS_KEY. Same arbitration as GET /stats vs
+// /stats/daily: this route only ever aggregates (revenue totals, run counts,
+// per-Actor name/price/margin/runs/revenue — see lib/stats-apify.js's
+// PUBLIC_TOP_LEVEL_FIELDS/PUBLIC_ACTOR_FIELDS allow-lists for the exact field
+// list and what's dropped, notably the Apify actor id and any internal error
+// detail). Reuses computeApifyStats()'s cache and in-flight de-dupe entirely —
+// computeApifyStatsPublic() never calls the Apify API itself, only reshapes
+// whatever computeApifyStats() already produced (see that file).
+app.get(
+  "/stats/apify/public",
+  apifyPublicLimiter,
+  safeHandler(async (req, res) => {
+    // CORS open for this route ONLY, same single-route pattern as GET /stats
+    // (endpoints/stats.js) — never a blanket app-wide cors().
+    res.set("Access-Control-Allow-Origin", "*");
+    res.json(await computeApifyStatsPublic());
   })
 );
 
