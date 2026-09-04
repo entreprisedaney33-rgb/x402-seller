@@ -5,13 +5,18 @@
 //
 // Champs ecrits, TOUS publics/non-sensibles (adresse de payeur et hash de
 // transaction sont deja visibles sur la blockchain) : date, endpoint, payer,
-// montant, hash. On construit la ligne par une liste EXPLICITE de champs
-// (jamais un spread de l'objet de contexte x402 en entier) pour garantir
-// qu'aucun secret ni payload de paiement signe ne peut finir dans le log,
-// meme si la forme des objets du SDK evolue.
+// montant, hash, ip (tronquee, JAMAIS l'adresse complete — meme fonction
+// truncateIp que sondage-log.js, importee d'ici plutot que redupliquee),
+// user_agent (2026-09-04, ajoutes pour permettre de corroborer un paiement
+// avec les sondes 402 du meme client — voir sondage-log.js pour le meme
+// principe applique aux sondes non payees). On construit la ligne par une
+// liste EXPLICITE de champs (jamais un spread de l'objet de contexte x402
+// en entier) pour garantir qu'aucun secret ni payload de paiement signe ne
+// peut finir dans le log, meme si la forme des objets du SDK evolue.
 import { mkdir, appendFile } from "node:fs/promises";
 import { join } from "node:path";
 import config from "./config.js";
+import { truncateIp } from "./sondage-log.js";
 
 const logFile = join(config.dataDir, "paiements.jsonl");
 let dirReady = null;
@@ -23,13 +28,15 @@ async function ensureLogDir() {
   await dirReady;
 }
 
-export async function logPaiementReussi({ endpoint, payer, montant, hash }) {
+export async function logPaiementReussi({ endpoint, payer, montant, hash, ip, userAgent }) {
   const entry = {
     date: new Date().toISOString(),
     endpoint: endpoint || null,
     payer: payer || null,
     montant: montant || null,
     hash: hash || null,
+    ip: truncateIp(ip),
+    user_agent: userAgent ? String(userAgent).slice(0, 200) : null,
   };
 
   try {

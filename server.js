@@ -100,6 +100,14 @@ resourceServer.onAfterSettle(async (ctx) => {
 
   const matchedEndpoint = endpoints.find((ep) => ep.path === endpointPath);
 
+  // adapter.req is the raw Express request (see node_modules/@x402/express's
+  // ExpressAdapter: `constructor(req) { this.req = req; }`) — same object
+  // trust-proxy-aware .ip that sondage-log.js's caller already reads
+  // (app.set("trust proxy", 1) above). Truncated by payment-log.js itself
+  // (imports the exact same truncateIp as sondage-log.js), never the raw
+  // address, before it ever touches the log file.
+  const adapter = ctx.transportContext?.request?.adapter;
+
   await logPaiementReussi({
     endpoint: endpointPath,
     payer: ctx.result.payer || null,
@@ -107,6 +115,8 @@ resourceServer.onAfterSettle(async (ctx) => {
     // fait payer (pas de negociation) — plus lisible qu'un montant atomique.
     montant: matchedEndpoint?.price || null,
     hash: ctx.result.transaction || null,
+    ip: adapter?.req?.ip || null,
+    userAgent: adapter?.getUserAgent?.() || null,
   });
 });
 
