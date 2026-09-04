@@ -19,6 +19,7 @@ import { logEchecSettlement } from "./echecs-log.js";
 import { computeDailyStats } from "./lib/stats-daily.js";
 import { computeProbesStats } from "./lib/stats-probes.js";
 import { computeEchecsStats } from "./lib/stats-echecs.js";
+import { computeApifyStats } from "./lib/stats-apify.js";
 import { safeHandler } from "./lib/http.js";
 
 // --- 1. Chargement automatique des endpoints -------------------------------
@@ -256,6 +257,28 @@ app.get(
       return;
     }
     res.json(await computeEchecsStats());
+  })
+);
+
+// GET /stats/apify?key=<STATS_KEY> — same gate/route pattern as
+// /stats/daily above (protected, never in .well-known/x402.json or
+// /openapi.json). Estimated USD revenue from Mathéo's own Apify Actors
+// monetized via pay-per-event — entirely separate from and unrelated to
+// this server's own x402 revenue above. See lib/stats-apify.js's file
+// header for exactly why every figure here is an ESTIMATE (no Apify API
+// gives an audited dollar amount), cached >=15min in DATA_DIR (survives
+// restarts, like the payment/sondage/echecs logs) so this route never
+// hits the Apify API on every tile refresh. Never a 500 on Apify being
+// unreachable — falls back to the last cached value with an honest
+// `freshness` flag instead (see computeApifyStats).
+app.get(
+  "/stats/apify",
+  safeHandler(async (req, res) => {
+    if (!config.statsKey || req.query.key !== config.statsKey) {
+      res.status(401).json({ error: "Missing or invalid 'key' query parameter." });
+      return;
+    }
+    res.json(await computeApifyStats());
   })
 );
 

@@ -88,6 +88,13 @@ export default {
   // route admin, jamais publiee dans .well-known/x402.json ni openapi.json.
   // Vide => route toujours refusee (401), jamais "cle vide == acces libre".
   statsKey: process.env.STATS_KEY || "",
+  // Token API personnel Apify (Settings > Integrations dans la Console),
+  // pour GET /stats/apify (revenu estime des Actors monetises du compte —
+  // voir lib/stats-apify.js). Meme gate STATS_KEY que /stats/daily : ce
+  // sont des revenus, jamais public. Vide => la route repond honnetement
+  // "non configure" plutot que d'echouer au demarrage (pas indispensable
+  // au service de paiement x402 lui-meme).
+  apifyToken: process.env.APIFY_TOKEN || "",
   // Adresse du portefeuille acheteur de TEST (scripts/buyer-test.js,
   // scripts/seed-bazaar.js, le cron seed-hebdo). PAS un secret — c'est une
   // adresse publique deja visible partout (rapports, README, explorateur
