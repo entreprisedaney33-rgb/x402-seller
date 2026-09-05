@@ -104,6 +104,14 @@ call `tools/list`, or browse
 directly, for the current full list and per-tool input schemas — deliberately not
 duplicated here, since it would drift from the live origin.
 
+## Related
+
+For a general-purpose agent that just wants a small set of everyday tools
+(fact verification, market data, gas price, quick AI tasks) instead of one
+tool per endpoint, see
+[`@dm2233/agent-data-mcp`](https://www.npmjs.com/package/@dm2233/agent-data-mcp)
+(npm) — it wraps this same 33-endpoint catalog as 5 grouped tools.
+
 ## Development
 
 ```bash
