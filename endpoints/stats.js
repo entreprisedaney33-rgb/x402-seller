@@ -3,7 +3,10 @@
 // responses ("probes") and how many successful payments each endpoint saw,
 // plus the USDC amount collected (global and per endpoint, 24h/7d/all-time)
 // — no sensitive data (no IPs, no payer addresses, no transaction hashes;
-// see sondage-log.js and payment-log.js).
+// see sondage-log.js and payment-log.js). Also reports npm download counts
+// for this project's 2 published MCP packages (npm_downloads field) — an
+// adoption signal, entirely separate from the payment/revenue figures above
+// (see lib/npm-downloads.js).
 import { computeStats } from "../lib/stats.js";
 
 export const path = "/stats";
@@ -11,7 +14,8 @@ export const method = "GET";
 export const price = null;
 export const description =
   "Usage stats per endpoint: count of 402 Payment Required responses (probes) vs. successful payments, and " +
-  "USDC amount collected, over the last 24h, 7d, and all-time. No sensitive data (no IPs, addresses, or " +
+  "USDC amount collected, over the last 24h, 7d, and all-time. Also includes npm download counts (24h/7d/" +
+  "since-publish) for this project's 2 published MCP packages. No sensitive data (no IPs, addresses, or " +
   "transaction hashes). Free, no parameters.";
 
 export async function handler(req, res) {
