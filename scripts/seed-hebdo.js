@@ -72,6 +72,12 @@ const SEED_PATHS = [
   "/api/defi/yields/pool",
   "/api/gas/base",
   "/api/defi/price",
+  // 10/11/2026 : les 2 nouveaux services a valeur ajoutee — un paiement reel
+  // hebdo les fait entrer puis les garde dans le Bazaar, et sert de test
+  // mainnet automatique (piege CDP des descriptions longues, voir README).
+  // +0,06 $/run.
+  "/api/search/answer",
+  "/api/company/lookup",
 ];
 
 const TARGET_URL = (process.env.TARGET_URL || "https://x402-seller-0ay3.onrender.com").replace(/\/$/, "");
@@ -79,7 +85,7 @@ const PAUSE_MS = 3000;
 // ~1.15x le cout d'un run ($0.26) — meme ratio de marge que l'ancien garde-fou
 // ($0.50 pour un run a $0.440), recalcule pour le nouveau cout plutot que
 // laisse a une valeur devenue disproportionnee.
-const MIN_BALANCE_USD = 0.3;
+const MIN_BALANCE_USD = 0.37; // 10/11/2026 : run passe a ~$0.32 avec les 2 nouveaux services (x1.15)
 
 // USDC natif sur Base mainnet (eip155:8453) — meme adresse que celle
 // utilisee par @x402/evm en interne (node_modules/@x402/evm/dist/esm/

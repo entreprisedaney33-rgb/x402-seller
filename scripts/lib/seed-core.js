@@ -38,6 +38,8 @@ export const EXAMPLES = {
   "/api/defi/yields/pool": { query: "pool=89bc7c4c-d71c-435c-ab28-56c803d51320" },
   "/api/defi/stablecoins": { query: "limit=3" },
   "/api/search/web": { body: { query: "latest developments in the x402 protocol", num_results: 3 } },
+  "/api/search/answer": { body: { question: "What is the x402 payment protocol and who created it?" } },
+  "/api/company/lookup": { query: "id=FR22531680445" },
   "/api/search/serp": { body: { query: "best crypto payment protocols 2026", country: "us" } },
   "/api/chain/gas": { query: "chain=base" },
   "/api/chain/block": { query: "chain=base" },
