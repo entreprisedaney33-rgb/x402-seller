@@ -14,7 +14,7 @@ import config from "./config.js";
 import { buildDiscoveryDocument } from "./discovery.js";
 import { buildOpenApiDocument } from "./openapi.js";
 import { logPaiementReussi } from "./payment-log.js";
-import { logSondage } from "./sondage-log.js";
+import { logSondage, planifierRotationSondages } from "./sondage-log.js";
 import { logEchecSettlement } from "./echecs-log.js";
 import { computeDailyStats } from "./lib/stats-daily.js";
 import { computeProbesStats } from "./lib/stats-probes.js";
@@ -351,4 +351,7 @@ app.listen(config.port, "0.0.0.0", () => {
   }
   console.log(`  GET /.well-known/x402.json [gratuit] — decouverte pour agents.`);
   console.log(`  GET /openapi.json [gratuit] — decouverte OpenAPI-first (x402scan et al.).`);
+  // Garde sondages.jsonl a ~8 jours (le reste part en archive compressee) —
+  // voir sondage-log.js, incident memoire du 10/11/2026.
+  planifierRotationSondages();
 });
