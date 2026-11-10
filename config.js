@@ -104,6 +104,16 @@ export default {
   // quelle adresse compte comme "test". Comparer via toLowerCase() cote
   // appelant (les adresses EVM peuvent revenir en casse mixte EIP-55).
   testWalletAddress: process.env.TEST_WALLET_ADDRESS || "0x216373E6A79E75BE5913355C983985DD78EE9fC2",
+  // 10/11/2026 : TOUS nos portefeuilles (pas seulement celui de test) —
+  // exclus des chiffres "tiers" (= vrais clients). Le portefeuille de test
+  // ci-dessus + OUR_WALLETS (variable Render, adresses separees par des
+  // virgules : portefeuilles de Matheo/Dorian, anciens essais, MCP...).
+  // Adresses PUBLIQUES, en minuscules ; jamais une cle privee ici.
+  ourWallets: new Set(
+    [process.env.TEST_WALLET_ADDRESS || "0x216373E6A79E75BE5913355C983985DD78EE9fC2", ...(process.env.OUR_WALLETS || "").split(",")]
+      .map((a) => a.trim().toLowerCase())
+      .filter((a) => /^0x[0-9a-f]{40}$/.test(a))
+  ),
   dataDir,
   port,
   // URL publique de CE serveur, sans slash final. Toute ressource annoncee
